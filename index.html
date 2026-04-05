@@ -52,7 +52,6 @@
             background: #f0f2f5;
             min-height: 100vh;
         }
-        /* Startup Screen */
         #startupScreen {
             position: fixed;
             top: 0;
@@ -112,7 +111,6 @@
             0% { width: 0%; }
             100% { width: 100%; }
         }
-        /* Connection Status */
         .connection-status {
             position: fixed;
             top: 16px;
@@ -151,7 +149,6 @@
             margin: 0 auto;
             padding: 16px;
         }
-        /* Navigation Cards */
         .nav-cards {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -196,7 +193,6 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* Professional Bill Header */
         .bill-header {
             text-align: center;
             margin-bottom: 24px;
@@ -210,10 +206,6 @@
             font-weight: 900;
             font-size: 1.8rem;
             letter-spacing: -0.5px;
-        }
-        .bill-header .shop-mobile {
-            margin-top: 8px;
-            opacity: 0.9;
         }
         .card {
             background: white;
@@ -258,7 +250,6 @@
             border: 1px solid #d1d5db;
             font-size: 0.9rem;
         }
-        /* Search Bar with Autocomplete */
         .search-container {
             position: relative;
         }
@@ -305,7 +296,6 @@
             padding: 12px;
             border-radius: 20px;
         }
-        /* Professional Modals */
         .modal {
             display: none;
             position: fixed;
@@ -324,7 +314,7 @@
             padding: 32px;
             border-radius: 36px;
             width: 90%;
-            max-width: 450px;
+            max-width: 480px;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             animation: modalSlide 0.3s ease;
         }
@@ -345,6 +335,12 @@
             border-radius: 20px;
             overflow: hidden;
             margin: 15px 0;
+            min-height: 280px;
+            position: relative;
+        }
+        .camera-preview video, .camera-preview canvas {
+            width: 100%;
+            height: auto;
         }
         .flex-btns {
             display: flex;
@@ -401,13 +397,12 @@
         <div class="nav-card" data-page="ledgerPage"><i class="fas fa-receipt"></i><h3>Bills Ledger</h3></div>
     </div>
 
-    <!-- POS PAGE with Professional Bill Layout -->
+    <!-- POS PAGE -->
     <div id="posPage" class="page active-page">
         <div class="bill-header">
             <div class="shop-name">📚 SANA BOOK DEPOT 📚</div>
             <div class="shop-mobile">Usman Bazar Havelian | +923235124366</div>
         </div>
-        
         <div class="card">
             <h2><i class="fas fa-user-circle"></i> Customer Selection</h2>
             <select id="customerSelect"></select>
@@ -416,18 +411,14 @@
                 Previous Balance: <strong id="prevBalanceDisplay" style="font-size: 1.2rem;">0.00 PKR</strong>
             </div>
         </div>
-
         <div class="card">
             <h2><i class="fas fa-search"></i> Add Items to Cart</h2>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button id="openScanModalBtn" style="flex:1;"><i class="fas fa-camera"></i> Scan Barcode</button>
-            </div>
+            <button id="openScanModalBtn" style="width: 100%;"><i class="fas fa-camera"></i> Scan Barcode</button>
             <div class="search-container" style="margin-top: 12px;">
                 <input type="text" id="searchItemInput" placeholder="🔍 Search book by name..." autocomplete="off">
                 <div id="autocompleteResults" class="autocomplete-list" style="display: none;"></div>
             </div>
         </div>
-
         <div class="card">
             <h2><i class="fas fa-shopping-cart"></i> Current Cart</h2>
             <div style="overflow-x: auto;">
@@ -453,24 +444,32 @@
         </div>
     </div>
 
-    <!-- Other Pages (Books, Customers, Ledger) -->
+    <!-- BOOKS PAGE -->
     <div id="booksPage" class="page">
-        <div class="card"><h2><i class="fas fa-database"></i> Books Inventory</h2><button id="openAddBookModalBtn"><i class="fas fa-plus-circle"></i> Add New Book</button><div id="booksList" style="margin-top:16px;"></div></div>
+        <div class="card">
+            <h2><i class="fas fa-database"></i> Books Inventory</h2>
+            <button id="openAddBookModalBtn"><i class="fas fa-plus-circle"></i> Add New Book</button>
+            <div id="booksList" style="margin-top:16px; max-height: 500px; overflow-y: auto;"></div>
+        </div>
     </div>
+
+    <!-- CUSTOMERS PAGE -->
     <div id="customersPage" class="page">
         <div class="card"><h2><i class="fas fa-address-card"></i> All Customers</h2><button id="addCustomerPageBtn"><i class="fas fa-user-plus"></i> Add Customer</button><div id="customersList" style="margin-top:16px;"></div></div>
     </div>
+
+    <!-- LEDGER PAGE -->
     <div id="ledgerPage" class="page">
         <div class="card"><h2><i class="fas fa-history"></i> Bill Ledger</h2><button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Refresh</button><div id="ledgerList" style="margin-top:16px;"></div></div>
     </div>
 </div>
 
-<!-- Scan Barcode Modal (Professional Popup) -->
+<!-- Scan Barcode Modal for POS -->
 <div id="scanModal" class="modal">
     <div class="modal-content">
         <h3><i class="fas fa-camera"></i> Scan Barcode</h3>
-        <div id="scanCameraContainer" class="camera-preview" style="min-height: 250px;"></div>
-        <button id="stopScanModalBtn" class="btn-outline" style="width: 100%;">Close Camera</button>
+        <div id="scanCameraContainer" class="camera-preview"></div>
+        <button id="stopScanModalBtn" class="btn-outline" style="width: 100%;"><i class="fas fa-times"></i> Close Camera</button>
     </div>
 </div>
 
@@ -489,8 +488,26 @@
     </div>
 </div>
 
-<!-- Add Book Modal -->
-<div id="addBookModal" class="modal"><div class="modal-content"><h3><i class="fas fa-book"></i> Add New Book</h3><input type="text" id="newBookBarcode" placeholder="Barcode"><button id="scanBarcodeModalBtn" class="btn-outline">Scan Barcode</button><div id="modalCameraContainer" style="display:none;"><div id="modalScannerView"></div><button id="stopModalCameraBtn">Stop</button></div><input type="text" id="newBookName" placeholder="Book Name"><input type="number" id="newBookPrice" placeholder="Price"><div class="flex-btns"><button id="cancelAddBookBtn">Cancel</button><button id="saveBookBtn">Save</button></div></div></div>
+<!-- Add Book Modal with Camera -->
+<div id="addBookModal" class="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-book"></i> Add New Book</h3>
+        <div class="input-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="newBookBarcode" placeholder="Barcode *" style="flex:1;">
+            <button id="scanBookBarcodeBtn" class="btn-outline"><i class="fas fa-camera"></i> Scan</button>
+        </div>
+        <div id="bookCameraContainer" style="display: none; margin: 10px 0;">
+            <div id="bookScannerView" class="camera-preview" style="min-height: 200px;"></div>
+            <button id="stopBookCameraBtn" class="btn-outline" style="width: 100%; margin-top: 8px;">Stop Camera</button>
+        </div>
+        <input type="text" id="newBookName" placeholder="Book Name *">
+        <input type="number" id="newBookPrice" placeholder="Price *" step="any">
+        <div class="flex-btns">
+            <button id="cancelAddBookBtn" class="btn-outline">Cancel</button>
+            <button id="saveBookBtn"><i class="fas fa-save"></i> Save Record</button>
+        </div>
+    </div>
+</div>
 
 <div id="toastMsg" class="toast"></div>
 
@@ -499,8 +516,8 @@
     let billItems = [];
     let discountPercent = 0;
     let allBooks = [];
-    let scanActive = false;
-    let pendingBarcode = null;
+    let activeScanner = null;
+    let activeScannerType = null;
 
     function showToast(msg, isError = false) {
         const toast = document.getElementById('toastMsg');
@@ -510,8 +527,22 @@
         setTimeout(() => toast.style.opacity = '0', 3000);
     }
 
+    function stopScanner() {
+        if (activeScanner) {
+            Quagga.stop();
+            activeScanner = null;
+        }
+        activeScannerType = null;
+    }
+
     window.addEventListener('firebaseReady', async () => {
-        setTimeout(() => { document.getElementById('startupScreen').style.opacity = '0'; setTimeout(() => { document.getElementById('startupScreen').style.display = 'none'; document.getElementById('appMain').style.display = 'block'; }, 500); }, 1500);
+        setTimeout(() => {
+            document.getElementById('startupScreen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('startupScreen').style.display = 'none';
+                document.getElementById('appMain').style.display = 'block';
+            }, 500);
+        }, 1500);
         await loadAllBooks();
         await loadCustomers();
         await loadBooksList();
@@ -526,56 +557,45 @@
         snapshot.forEach(docSnap => { allBooks.push({ barcode: docSnap.id, ...docSnap.data() }); });
     }
 
-    // Autocomplete Search
-    function setupAutocomplete() {
-        const searchInput = document.getElementById('searchItemInput');
-        const resultsDiv = document.getElementById('autocompleteResults');
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            if (query.length === 0) { resultsDiv.style.display = 'none'; return; }
-            const filtered = allBooks.filter(book => book.name.toLowerCase().includes(query));
-            if (filtered.length > 0) {
-                resultsDiv.innerHTML = filtered.map(book => `<div class="autocomplete-item" data-barcode="${book.barcode}" data-name="${book.name.replace(/'/g, "\\'")}" data-price="${book.price}">📖 ${book.name} - ₹${book.price}</div>`).join('');
-                resultsDiv.style.display = 'block';
-                document.querySelectorAll('.autocomplete-item').forEach(el => {
-                    el.addEventListener('click', () => {
-                        const barcode = el.dataset.barcode;
-                        const name = el.dataset.name;
-                        const price = parseFloat(el.dataset.price);
-                        searchInput.value = '';
-                        resultsDiv.style.display = 'none';
-                        openQuantityModal(barcode, name, price);
-                    });
-                });
-            } else { resultsDiv.style.display = 'none'; }
-        });
-        document.addEventListener('click', (e) => { if (!searchInput.contains(e.target)) resultsDiv.style.display = 'none'; });
-    }
-
-    // Professional Scan Popup
-    async function openScanModal() {
+    // POS Scanner
+    async function openPOSScanner() {
         document.getElementById('scanModal').style.display = 'flex';
         const container = document.getElementById('scanCameraContainer');
-        container.innerHTML = '<div id="scanView" style="width:100%;"></div>';
+        container.innerHTML = '<div id="posScanView" style="width:100%;"></div>';
+        
+        stopScanner();
         Quagga.init({
-            inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#scanView") },
-            decoder: { readers: ["ean_reader", "code_128_reader", "ean_8_reader"] }
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector("#posScanView"),
+                constraints: { facingMode: "environment" }
+            },
+            decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader"] },
+            locate: true,
+            numOfWorkers: 4
         }, (err) => {
-            if (err) { showToast("Camera error", true); closeScanModal(); return; }
+            if (err) { showToast("Camera error: " + err, true); closePOSScanner(); return; }
             Quagga.start();
-            scanActive = true;
+            activeScanner = true;
+            activeScannerType = 'pos';
             Quagga.onDetected(async (data) => {
                 const code = data.codeResult.code;
-                Quagga.stop();
-                scanActive = false;
-                closeScanModal();
-                await processBarcode(code);
+                if (code) {
+                    stopScanner();
+                    closePOSScanner();
+                    await processBarcodeForPOS(code);
+                }
             });
         });
     }
-    function closeScanModal() { document.getElementById('scanModal').style.display = 'none'; if(scanActive) { Quagga.stop(); scanActive = false; } }
 
-    async function processBarcode(barcode) {
+    function closePOSScanner() {
+        document.getElementById('scanModal').style.display = 'none';
+        stopScanner();
+    }
+
+    async function processBarcodeForPOS(barcode) {
         const book = allBooks.find(b => b.barcode === barcode);
         if (book) {
             openQuantityModal(barcode, book.name, book.price);
@@ -585,6 +605,46 @@
                 document.getElementById('addBookModal').style.display = 'flex';
             }
         }
+    }
+
+    // Books Database Scanner
+    async function openBookScanner() {
+        const container = document.getElementById('bookScannerView');
+        if (!container) return;
+        document.getElementById('bookCameraContainer').style.display = 'block';
+        container.innerHTML = '<div id="bookScanView" style="width:100%;"></div>';
+        
+        stopScanner();
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector("#bookScanView"),
+                constraints: { facingMode: "environment" }
+            },
+            decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader"] },
+            locate: true,
+            numOfWorkers: 4
+        }, (err) => {
+            if (err) { showToast("Camera error: " + err, true); closeBookScanner(); return; }
+            Quagga.start();
+            activeScanner = true;
+            activeScannerType = 'book';
+            Quagga.onDetected(async (data) => {
+                const code = data.codeResult.code;
+                if (code) {
+                    stopScanner();
+                    document.getElementById('newBookBarcode').value = code;
+                    closeBookScanner();
+                    showToast("Barcode scanned: " + code);
+                }
+            });
+        });
+    }
+
+    function closeBookScanner() {
+        document.getElementById('bookCameraContainer').style.display = 'none';
+        stopScanner();
     }
 
     function openQuantityModal(barcode, name, price) {
@@ -612,6 +672,32 @@
         computeTotals();
         showToast(`${name} x${qty} added to cart`);
         document.getElementById('quantityModal').style.display = 'none';
+    }
+
+    // Autocomplete Search
+    function setupAutocomplete() {
+        const searchInput = document.getElementById('searchItemInput');
+        const resultsDiv = document.getElementById('autocompleteResults');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            if (query.length === 0) { resultsDiv.style.display = 'none'; return; }
+            const filtered = allBooks.filter(book => book.name.toLowerCase().includes(query));
+            if (filtered.length > 0) {
+                resultsDiv.innerHTML = filtered.map(book => `<div class="autocomplete-item" data-barcode="${book.barcode}" data-name="${book.name.replace(/'/g, "\\'")}" data-price="${book.price}">📖 ${book.name} - ₹${book.price}</div>`).join('');
+                resultsDiv.style.display = 'block';
+                document.querySelectorAll('.autocomplete-item').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const barcode = el.dataset.barcode;
+                        const name = el.dataset.name;
+                        const price = parseFloat(el.dataset.price);
+                        searchInput.value = '';
+                        resultsDiv.style.display = 'none';
+                        openQuantityModal(barcode, name, price);
+                    });
+                });
+            } else { resultsDiv.style.display = 'none'; }
+        });
+        document.addEventListener('click', (e) => { if (!searchInput.contains(e.target)) resultsDiv.style.display = 'none'; });
     }
 
     async function loadCustomers() {
@@ -720,14 +806,15 @@
         const barcode = document.getElementById('newBookBarcode').value.trim();
         const name = document.getElementById('newBookName').value.trim();
         const price = parseFloat(document.getElementById('newBookPrice').value);
-        if(!barcode || !name || isNaN(price)) { showToast("Fill all fields", true); return; }
+        if(!barcode || !name || isNaN(price)) { showToast("Please fill all fields", true); return; }
         const existing = await getDoc(doc(window.db, "books", barcode));
-        if(existing.exists()) { showToast("Record already exists", true); return; }
+        if(existing.exists()) { showToast("❌ Record already exists! Barcode already in database.", true); return; }
         await setDoc(doc(window.db, "books", barcode), { name, price });
-        showToast("Book added successfully!");
+        showToast("✅ Record added successfully!");
         document.getElementById('addBookModal').style.display = 'none';
         await loadAllBooks(); await loadBooksList();
         document.getElementById('newBookBarcode').value = ''; document.getElementById('newBookName').value = ''; document.getElementById('newBookPrice').value = '';
+        closeBookScanner();
     }
 
     function attachEvents() {
@@ -738,24 +825,48 @@
                 document.querySelectorAll('.page').forEach(p=>p.classList.remove('active-page'));
                 document.getElementById(card.dataset.page).classList.add('active-page');
                 if(card.dataset.page === 'posPage') loadAllBooks();
+                stopScanner();
             };
         });
-        document.getElementById('openScanModalBtn').onclick = openScanModal;
-        document.getElementById('stopScanModalBtn').onclick = closeScanModal;
+        
+        // POS Scanner events
+        document.getElementById('openScanModalBtn').onclick = openPOSScanner;
+        document.getElementById('stopScanModalBtn').onclick = closePOSScanner;
+        
+        // Book scanner events
+        document.getElementById('scanBookBarcodeBtn').onclick = openBookScanner;
+        document.getElementById('stopBookCameraBtn').onclick = closeBookScanner;
+        
         document.getElementById('confirmQtyBtn').onclick = addToBillWithQuantity;
         document.getElementById('cancelQtyBtn').onclick = () => document.getElementById('quantityModal').style.display = 'none';
         document.getElementById('newCustomerBtn').onclick = addNewCustomer;
         document.getElementById('addCustomerPageBtn').onclick = addNewCustomer;
         document.getElementById('generatePdfBtn').onclick = generateAndSaveBill;
         document.getElementById('refreshLedgerBtn').onclick = loadLedger;
-        document.getElementById('openAddBookModalBtn').onclick = () => document.getElementById('addBookModal').style.display = 'flex';
+        document.getElementById('openAddBookModalBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'flex'; closeBookScanner(); };
         document.getElementById('saveBookBtn').onclick = saveNewBook;
-        document.getElementById('cancelAddBookBtn').onclick = () => document.getElementById('addBookModal').style.display = 'none';
-        document.getElementById('scanBarcodeModalBtn').onclick = () => { alert("Use camera from POS section"); };
+        document.getElementById('cancelAddBookBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'none'; closeBookScanner(); };
         document.getElementById('discountPercent').addEventListener('input', (e) => { discountPercent = parseFloat(e.target.value)||0; computeTotals(); });
         document.getElementById('paidAmount').addEventListener('input', computeTotals);
-        document.getElementById('bluetoothPrintBtn').onclick = async () => { if(billItems.length===0){showToast("No bill",true);return;} let text = `SANA BOOK DEPOT\n${currentCustomer.name}\n${billItems.map(i=>`${i.name} x${i.quantity}=${i.price*i.quantity}`).join('\n')}\nGrand: ${document.getElementById('grandTotalSpan').innerText}`; try{ const device = await navigator.bluetooth.requestDevice({filters:[{services:['000018f0-0000-1000-8000-00805f9b34fb']}]}); const server = await device.gatt.connect(); const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb'); const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb'); await char.writeValue(new TextEncoder().encode(text+'\x1D\x56\x42\x00')); showToast("Print sent"); } catch(e){ showToast("BT error",true); } };
-        document.getElementById('whatsappBtn').onclick = () => { let msg = `SANA BOOK DEPOT\n${currentCustomer.name}\nTotal: ${document.getElementById('grandTotalSpan').innerText}`; window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank'); };
+        
+        document.getElementById('bluetoothPrintBtn').onclick = async () => { 
+            if(billItems.length===0){showToast("No bill",true);return;} 
+            let text = `SANA BOOK DEPOT\n${currentCustomer.name || 'Guest'}\n${billItems.map(i=>`${i.name} x${i.quantity}=${(i.price*i.quantity).toFixed(2)}`).join('\n')}\nGrand: ₹${document.getElementById('grandTotalSpan').innerText}\nThank you!`; 
+            try{ 
+                const device = await navigator.bluetooth.requestDevice({filters:[{services:['000018f0-0000-1000-8000-00805f9b34fb']}]}); 
+                const server = await device.gatt.connect(); 
+                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb'); 
+                const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb'); 
+                await char.writeValue(new TextEncoder().encode(text+'\x1D\x56\x42\x00')); 
+                showToast("Print sent"); 
+            } catch(e){ showToast("BT error: " + e.message, true); } 
+        };
+        
+        document.getElementById('whatsappBtn').onclick = () => { 
+            let msg = `SANA BOOK DEPOT\n${currentCustomer.name || 'Guest'}\nTotal: ₹${document.getElementById('grandTotalSpan').innerText}\nThank you!`; 
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank'); 
+        };
+        
         setupAutocomplete();
     }
 </script>
