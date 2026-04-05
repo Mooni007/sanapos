@@ -5,19 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Sana Book Depot - POS System</title>
     <!-- Google Fonts & Font Awesome 6 -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- QuaggaJS Barcode Scanner -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- Firebase 9 modular (CDN) -->
+    <!-- Firebase 9 modular -->
     <script type="module">
-        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, orderBy, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
         
-        // ==================== FIREBASE CONFIG (PROVIDED) ====================
         const firebaseConfig = {
             apiKey: "AIzaSyBDnFJu0ZegvbY5-eVhF3SxNCu3uxqs1BE",
             authDomain: "sana-book-depot.firebaseapp.com",
@@ -28,11 +26,18 @@
             measurementId: "G-XJPE5S6HGR"
         };
         
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // Expose db and Firestore functions globally
+        // Enable offline persistence
+        enableIndexedDbPersistence(db).catch((err) => {
+            if (err.code === 'failed-precondition') {
+                console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+            } else if (err.code === 'unimplemented') {
+                console.warn('Browser doesn\'t support persistence');
+            }
+        });
+        
         window.db = db;
         window.collection = collection;
         window.doc = doc;
@@ -44,7 +49,6 @@
         window.query = query;
         window.orderBy = orderBy;
         
-        // Wait for DOM then start app
         window.addEventListener('DOMContentLoaded', () => {
             window.dispatchEvent(new Event('firebaseReady'));
         });
@@ -58,160 +62,233 @@
         }
         body {
             background: #f0f2f5;
-            padding: 16px;
+            min-height: 100vh;
+        }
+        /* Professional Startup Screen */
+        #startupScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        .startup-content {
+            text-align: center;
+            animation: floatIn 0.8s ease;
+        }
+        @keyframes floatIn {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .book-logo {
+            font-size: 100px;
+            color: #f5c542;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.3));
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .startup-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: white;
+            margin-top: 20px;
+            letter-spacing: -0.5px;
+        }
+        .startup-subtitle {
+            color: #cbd5e1;
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+        .loading-bar {
+            width: 200px;
+            height: 3px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            margin: 30px auto 0;
+            overflow: hidden;
+        }
+        .loading-progress {
+            width: 0%;
+            height: 100%;
+            background: #f5c542;
+            animation: loadProgress 2s ease forwards;
+        }
+        @keyframes loadProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        /* Connection Status Dot */
+        .connection-status {
+            position: fixed;
+            top: 16px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .green-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #2ecc71;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #2ecc71;
+            animation: pulse-green 1.5s infinite;
+        }
+        .red-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #e74c3c;
+        }
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.9); }
         }
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 16px;
         }
-        /* Splash screen */
-        #splash {
-            position: fixed;
-            top:0; left:0; width:100%; height:100%;
-            background: #1a2a36;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            flex-direction: column;
-            color: white;
-            transition: opacity 0.5s;
-        }
-        .splash-content {
-            text-align: center;
-            animation: fadeInUp 0.6s ease;
-        }
-        .splash-content i {
-            font-size: 80px;
-            margin-bottom: 20px;
-            color: #f5c542;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px);}
-            to { opacity: 1; transform: translateY(0);}
-        }
-        /* Cards & Layout */
-        .grid-2 {
+        /* Navigation Cards for Categories */
+        .nav-cards {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 24px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .nav-card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 2px solid transparent;
+        }
+        .nav-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+        }
+        .nav-card.active {
+            border-color: #2c5364;
+            background: linear-gradient(135deg, #fff, #f8fafc);
+        }
+        .nav-card i {
+            font-size: 2rem;
+            color: #2c5364;
+            margin-bottom: 10px;
+        }
+        .nav-card h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+        /* Page Containers */
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .page.active-page {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .shop-header {
+            text-align: center;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border-radius: 32px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .shop-name {
+            font-weight: 900;
+            font-size: 2rem;
+            color: #0f172a;
         }
         .card {
             background: white;
             border-radius: 28px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
             padding: 20px;
-            margin-bottom: 24px;
-            transition: all 0.2s;
-        }
-        .bill-card {
-            background: white;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
         }
         h2 {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            border-left: 5px solid #1a2a36;
+            border-left: 5px solid #2c5364;
             padding-left: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        h2 i {
-            color: #1a2a36;
-        }
-        /* Shop Header - More Bold & Centered */
-        .shop-header {
-            text-align: center;
-            margin-bottom: 28px;
-            border-bottom: 3px solid #e2e8f0;
-            padding-bottom: 20px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border-radius: 32px;
-            padding: 20px;
-        }
-        .shop-name {
-            font-weight: 900;
-            font-size: 2.2rem;
-            color: #0f172a;
-            letter-spacing: -0.5px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
-        }
-        .shop-mobile {
-            color: #2c3e4e;
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-top: 6px;
         }
         button, .btn {
-            background: #1e2f3a;
+            background: #2c5364;
             border: none;
             padding: 10px 18px;
             border-radius: 40px;
             color: white;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: 0.2s;
             margin: 4px 6px 4px 0;
             font-size: 0.85rem;
             display: inline-flex;
             align-items: center;
             gap: 6px;
         }
-        button i, .btn i { font-size: 1rem; }
-        button:hover { background: #0f1e26; transform: translateY(-1px); }
+        button:hover { background: #1a3a48; transform: translateY(-1px); }
         .btn-outline {
             background: white;
-            border: 1.5px solid #1e2f3a;
-            color: #1e2f3a;
+            border: 1.5px solid #2c5364;
+            color: #2c5364;
         }
-        .btn-outline:hover { background: #eef2f5; }
-        .btn-danger { background: #c0392b; }
-        .btn-success { background: #27ae60; }
-        input, select, textarea {
+        input, select {
             width: 100%;
             padding: 12px 16px;
             margin: 8px 0;
             border-radius: 24px;
             border: 1px solid #d1d5db;
-            font-size: 0.95rem;
-            transition: 0.2s;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #1e2f3a;
-            box-shadow: 0 0 0 2px rgba(30,47,58,0.1);
+            font-size: 0.9rem;
         }
         .bill-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 16px 0;
         }
         .bill-table th, .bill-table td {
             border-bottom: 1px solid #e2e8f0;
             padding: 12px 5px;
             text-align: left;
-            font-size: 0.9rem;
-        }
-        .bill-table th {
-            font-weight: 700;
-            color: #475569;
         }
         .totals-row {
             display: flex;
             justify-content: space-between;
             padding: 10px 0;
-            font-weight: 500;
-            border-bottom: 1px dashed #e2e8f0;
         }
         .grand-total {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 800;
-            color: #1a2a36;
-            background: #f8fafc;
+            background: #f1f5f9;
             padding: 12px;
             border-radius: 20px;
-            margin-top: 8px;
         }
         .modal {
             display: none;
@@ -221,35 +298,17 @@
             align-items: center;
             justify-content: center;
             z-index: 1100;
-            backdrop-filter: blur(4px);
         }
         .modal-content {
             background: white;
             padding: 28px;
             border-radius: 36px;
             width: 90%;
-            max-width: 420px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-        }
-        .flex-btns {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        .camera-view {
-            background: #000;
-            border-radius: 24px;
-            overflow: hidden;
-            margin: 12px 0;
-            position: relative;
-        }
-        #interactive.viewport canvas, #interactive.viewport video {
-            width: 100%;
+            max-width: 400px;
         }
         .toast {
             position: fixed;
-            bottom: 24px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: #1e293b;
@@ -260,297 +319,301 @@
             opacity: 0;
             transition: 0.3s;
             font-weight: 500;
-            white-space: nowrap;
-            pointer-events: none;
         }
-        @media (max-width: 800px) {
-            .grid-2 { grid-template-columns: 1fr; }
-            body { padding: 12px; }
-            .shop-name { font-size: 1.6rem; }
-            .toast { white-space: normal; width: 90%; text-align: center; }
+        @media (max-width: 700px) {
+            .nav-cards { grid-template-columns: repeat(2, 1fr); }
+            .shop-name { font-size: 1.4rem; }
         }
-        .ledger-item, .category-item {
+        .list-item {
             background: #f8fafc;
-            border-radius: 20px;
-            padding: 14px;
-            margin-bottom: 12px;
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 10px;
             cursor: pointer;
-            transition: 0.2s;
             border: 1px solid #e2e8f0;
         }
-        .ledger-item:hover, .category-item:hover { background: #eef2ff; transform: translateX(4px); }
-        footer {
-            margin-top: 40px;
-            font-size: 0.8rem;
-            background: #ffffffd9;
-            padding: 20px;
-            border-radius: 28px;
-            backdrop-filter: blur(4px);
-        }
-        .tab-bar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 8px;
-        }
-        .tab-btn {
-            background: transparent;
-            color: #475569;
-            box-shadow: none;
-            border-radius: 40px;
-        }
-        .tab-btn.active {
-            background: #1e2f3a;
+        .offline-badge {
+            background: #f59e0b;
             color: white;
-        }
-        .category-panel { display: none; }
-        .category-panel.active-panel { display: block; }
-        .camera-icon {
-            background: #27ae60;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 20px;
             margin-left: 8px;
         }
     </style>
 </head>
 <body>
-<div id="splash">
-    <div class="splash-content">
-        <i class="fas fa-book-open"></i>
-        <h1>Sana Ullah Book Depot</h1>
-        <p>POS Billing Software v2.0</p>
-        <div class="spinner"><i class="fas fa-spinner fa-pulse fa-2x"></i></div>
-    </div>
-</div>
-<div class="container" style="display:none" id="appMain">
-    <div class="shop-header">
-        <div class="shop-name">📚 SANA BOOK DEPOT 📚</div>
-        <div class="shop-name" style="font-size:1.4rem;">Usman Bazar Havelian</div>
-        <div class="shop-mobile"><i class="fas fa-phone-alt"></i> +923235124366</div>
-    </div>
-    
-    <!-- Tabs for Categories: Books, Customers, Ledger -->
-    <div class="tab-bar">
-        <button class="tab-btn active" data-tab="booksTab"><i class="fas fa-book"></i> Books DB</button>
-        <button class="tab-btn" data-tab="customersTab"><i class="fas fa-users"></i> Customers DB</button>
-        <button class="tab-btn" data-tab="ledgerTab"><i class="fas fa-receipt"></i> Bills Ledger</button>
-    </div>
-    
-    <!-- Books Database Panel -->
-    <div id="booksTab" class="category-panel active-panel">
-        <div class="card">
-            <h2><i class="fas fa-database"></i> Books Inventory</h2>
-            <div class="camera-view" id="scannerContainer" style="display:none;">
-                <div id="interactive" class="viewport"></div>
-                <button id="stopScannerBtn" class="btn-outline" style="margin-top:8px;"><i class="fas fa-stop"></i> Stop Camera</button>
-            </div>
-            <button id="startScanBtn"><i class="fas fa-camera"></i> 📷 Scan Barcode (Add to Bill)</button>
-            <button id="manualAddBookBtn"><i class="fas fa-plus-circle"></i> Add New Book</button>
-            <hr style="margin:16px 0">
-            <input type="text" id="manualBarcodeInput" placeholder="Enter barcode to search / add to bill">
-            <button id="searchBookBtn"><i class="fas fa-search"></i> Load & Add to Bill</button>
-            <div id="booksListPreview" style="margin-top:16px; max-height:200px; overflow-y:auto;"></div>
+<!-- Startup Screen -->
+<div id="startupScreen">
+    <div class="startup-content">
+        <div class="book-logo">
+            <i class="fas fa-book-open"></i>
         </div>
+        <div class="startup-title">SANA BOOK DEPOT</div>
+        <div class="startup-subtitle">Professional POS Billing System</div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+        <div class="startup-subtitle" style="margin-top: 15px; font-size: 0.8rem;">Initializing Firebase...</div>
     </div>
-    
-    <!-- Customers Database Panel -->
-    <div id="customersTab" class="category-panel">
-        <div class="card">
-            <h2><i class="fas fa-address-card"></i> Customer Records</h2>
-            <select id="customerSelect"></select>
-            <button id="newCustomerBtn"><i class="fas fa-user-plus"></i> New Customer</button>
-            <div style="margin-top:12px;">Previous Balance: <strong id="prevBalanceDisplay" style="font-size:1.3rem;">0.00 PKR</strong></div>
-        </div>
-    </div>
-    
-    <!-- Ledger Database Panel (Past Bills) -->
-    <div id="ledgerTab" class="category-panel">
-        <div class="card">
-            <h2><i class="fas fa-history"></i> Past Bills Ledger</h2>
-            <button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Load All Bills</button>
-            <div id="ledgerListContainer" style="max-height: 320px; overflow-y: auto; margin-top: 12px;"></div>
-        </div>
-    </div>
-    
-    <!-- BILL SECTION (Always visible) -->
-    <div class="card bill-card">
-        <h2><i class="fas fa-receipt"></i> Current Bill</h2>
-        <div style="overflow-x:auto;">
-            <table class="bill-table" id="billItemsTable">
-                <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th><th></th></tr></thead>
-                <tbody id="billItemsBody"></tbody>
-            </table>
-        </div>
-        <div id="totalsArea">
-            <div class="totals-row"><span>Total Bill (Subtotal):</span><span id="totalBillSpan">0.00</span></div>
-            <div class="totals-row"><span>Discount (<span id="discPercSpan">0</span>%):</span><span id="discountAmountSpan">0.00</span></div>
-            <div class="totals-row"><span>Previous Balance:</span><span id="prevBalSpan">0.00</span></div>
-            <div class="totals-row grand-total"><span>Grand Total:</span><span id="grandTotalSpan">0.00</span></div>
-            <div class="totals-row"><span>Amount Paid:</span><input type="number" id="paidAmount" value="0" step="any" style="width:140px;"></div>
-            <div class="totals-row"><span>Balance:</span><span id="balanceSpan">0.00</span></div>
-        </div>
-        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;">
-            <button id="generatePdfBtn"><i class="fas fa-file-pdf"></i> Generate & Save Bill</button>
-            <button id="bluetoothPrintBtn"><i class="fab fa-bluetooth"></i> Print via Bluetooth</button>
-            <button id="whatsappBtn"><i class="fab fa-whatsapp"></i> Send WhatsApp</button>
-        </div>
-    </div>
-    
-    <footer>
-        <details><summary>📘 Deployment Guide (Firebase configured)</summary>
-        <p><strong>Firebase:</strong> Already integrated with your project ID. Collections: "books", "customers", "ledger" will auto-create.<br>
-        <strong>HTTPS Required:</strong> For camera & Bluetooth, serve via HTTPS (GitHub Pages works).<br>
-        <strong>Features:</strong> Camera scanning adds to bill, asks quantity. If barcode exists, loads price. Edit by clicking any row.</p>
-        </details>
-    </footer>
 </div>
 
-<!-- Modals -->
-<div id="itemModal" class="modal"><div class="modal-content"><h3 id="modalTitle">Add / Edit Item</h3><input type="text" id="modalItemName" placeholder="Item Name" readonly><input type="number" id="modalPrice" placeholder="Price"><input type="number" id="modalQty" value="1" step="1"><div class="flex-btns"><button id="modalConfirm">Confirm</button><button id="modalCancel">Cancel</button></div></div></div>
+<!-- Connection Status -->
+<div class="connection-status" id="connStatus">
+    <span class="green-dot" id="statusDot"></span>
+    <span id="statusText">Connected</span>
+</div>
+
+<div class="container" style="display: none;" id="appMain">
+    <div class="shop-header">
+        <div class="shop-name">📚 SANA BOOK DEPOT USMAN BAZAR HAVELIAN 📚</div>
+        <div style="font-weight: 600; margin-top: 5px;"><i class="fas fa-phone-alt"></i> +923235124366</div>
+    </div>
+
+    <!-- Navigation Cards -->
+    <div class="nav-cards">
+        <div class="nav-card" data-page="posPage">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>POS / Billing</h3>
+        </div>
+        <div class="nav-card" data-page="booksPage">
+            <i class="fas fa-book"></i>
+            <h3>Books Database</h3>
+        </div>
+        <div class="nav-card" data-page="customersPage">
+            <i class="fas fa-users"></i>
+            <h3>Customers</h3>
+        </div>
+        <div class="nav-card" data-page="ledgerPage">
+            <i class="fas fa-receipt"></i>
+            <h3>Bills Ledger</h3>
+        </div>
+    </div>
+
+    <!-- POS PAGE -->
+    <div id="posPage" class="page active-page">
+        <div class="card">
+            <h2><i class="fas fa-user"></i> Customer Selection</h2>
+            <select id="customerSelect"></select>
+            <button id="newCustomerBtn"><i class="fas fa-user-plus"></i> New Customer</button>
+            <div>Previous Balance: <strong id="prevBalanceDisplay">0.00 PKR</strong></div>
+        </div>
+        <div class="card">
+            <h2><i class="fas fa-barcode"></i> Add Items</h2>
+            <button id="startScanBtn"><i class="fas fa-camera"></i> Scan Barcode (Camera)</button>
+            <div style="margin-top: 10px;">
+                <input type="text" id="manualBarcodeInput" placeholder="Enter barcode manually">
+                <button id="searchBookBtn"><i class="fas fa-search"></i> Add to Bill</button>
+            </div>
+            <div id="scannerContainer" style="display:none; margin-top: 10px;">
+                <div id="interactive" class="viewport"></div>
+                <button id="stopScannerBtn" class="btn-outline"><i class="fas fa-stop"></i> Stop</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2><i class="fas fa-receipt"></i> Current Bill</h2>
+            <div style="overflow-x:auto;">
+                <table class="bill-table">
+                    <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th><th></th></tr></thead>
+                    <tbody id="billItemsBody"></tbody>
+                </table>
+            </div>
+            <div>
+                <div class="totals-row"><span>Total Bill:</span><span id="totalBillSpan">0.00</span></div>
+                <div class="totals-row"><span>Discount %:</span><input type="number" id="discountPercent" value="0" step="any" style="width:100px;"></div>
+                <div class="totals-row"><span>Discount Amount:</span><span id="discountAmountSpan">0.00</span></div>
+                <div class="totals-row"><span>Previous Balance:</span><span id="prevBalSpan">0.00</span></div>
+                <div class="totals-row grand-total"><span>Grand Total:</span><span id="grandTotalSpan">0.00</span></div>
+                <div class="totals-row"><span>Amount Paid:</span><input type="number" id="paidAmount" value="0" step="any" style="width:130px;"></div>
+                <div class="totals-row"><span>Balance:</span><span id="balanceSpan">0.00</span></div>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;">
+                <button id="generatePdfBtn"><i class="fas fa-file-pdf"></i> Save Bill & PDF</button>
+                <button id="bluetoothPrintBtn"><i class="fab fa-bluetooth"></i> Bluetooth Print</button>
+                <button id="whatsappBtn"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOOKS DATABASE PAGE -->
+    <div id="booksPage" class="page">
+        <div class="card">
+            <h2><i class="fas fa-database"></i> Books Inventory</h2>
+            <button id="manualAddBookBtn"><i class="fas fa-plus-circle"></i> Add New Book</button>
+            <div id="booksList" style="margin-top: 16px; max-height: 500px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- CUSTOMERS PAGE -->
+    <div id="customersPage" class="page">
+        <div class="card">
+            <h2><i class="fas fa-address-card"></i> All Customers</h2>
+            <button id="addCustomerPageBtn"><i class="fas fa-user-plus"></i> Add Customer</button>
+            <div id="customersList" style="margin-top: 16px; max-height: 500px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- LEDGER PAGE -->
+    <div id="ledgerPage" class="page">
+        <div class="card">
+            <h2><i class="fas fa-history"></i> Bill Ledger</h2>
+            <button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <div id="ledgerList" style="margin-top: 16px; max-height: 500px; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="itemModal" class="modal"><div class="modal-content"><h3>Add/Edit Item</h3><input type="text" id="modalItemName" readonly><input type="number" id="modalPrice" placeholder="Price"><input type="number" id="modalQty" value="1"><div class="flex-btns" style="display:flex; gap:10px; margin-top:20px;"><button id="modalConfirm">Confirm</button><button id="modalCancel">Cancel</button></div></div></div>
 <div id="toastMsg" class="toast"></div>
 
 <script>
-    // Global state
+    // App State
     let currentCustomer = { id: null, name: '', previousBalance: 0 };
     let billItems = [];
     let discountPercent = 0;
     let scannerActive = false;
-    
-    function showToast(msg, isError=false) {
+    let isOnline = navigator.onLine;
+    let pendingSync = [];
+
+    // Toast
+    function showToast(msg, isError = false) {
         const toast = document.getElementById('toastMsg');
-        toast.style.background = isError ? '#c0392b' : '#1e293b';
+        toast.style.background = isError ? '#c0392b' : '#2c5364';
         toast.innerText = msg;
         toast.style.opacity = '1';
-        setTimeout(() => toast.style.opacity = '0', 2800);
+        setTimeout(() => toast.style.opacity = '0', 3000);
     }
-    
-    // Wait for Firebase
+
+    // Update connection status
+    function updateConnectionStatus() {
+        isOnline = navigator.onLine;
+        const dot = document.getElementById('statusDot');
+        const text = document.getElementById('statusText');
+        if (isOnline) {
+            dot.className = 'green-dot';
+            text.innerText = 'Connected to Firebase';
+            text.style.color = '#2ecc71';
+        } else {
+            dot.className = 'red-dot';
+            text.innerText = 'Offline Mode - Data will sync later';
+            text.style.color = '#e74c3c';
+            showToast('⚠️ Offline mode: Data saved locally, will sync when online', false);
+        }
+    }
+
+    window.addEventListener('online', () => { updateConnectionStatus(); syncPendingOperations(); });
+    window.addEventListener('offline', updateConnectionStatus);
+
+    // Sync pending operations (basic - for demo we re-save ledger items)
+    async function syncPendingOperations() {
+        if (!isOnline) return;
+        const pending = JSON.parse(localStorage.getItem('pendingBills') || '[]');
+        for (let bill of pending) {
+            try {
+                await addDoc(collection(window.db, "ledger"), bill);
+                if (bill.customerId) await updateDoc(doc(window.db, "customers", bill.customerId), { previousBalance: bill.newBalance });
+            } catch(e) { console.warn(e); }
+        }
+        localStorage.setItem('pendingBills', '[]');
+        showToast('✅ Synced offline records to Firebase');
+        loadLedger();
+    }
+
+    // Firebase Ready
     window.addEventListener('firebaseReady', async () => {
-        document.getElementById('splash').style.display = 'none';
-        document.getElementById('appMain').style.display = 'block';
+        setTimeout(() => {
+            document.getElementById('startupScreen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('startupScreen').style.display = 'none';
+                document.getElementById('appMain').style.display = 'block';
+            }, 800);
+        }, 2000);
+        updateConnectionStatus();
         await loadCustomers();
-        await loadBooksPreview();
+        await loadBooksList();
+        await loadLedger();
         attachEvents();
         computeTotals();
+        syncPendingOperations();
     });
-    
+
     async function loadCustomers() {
-        const customersCol = collection(window.db, "customers");
-        const snapshot = await getDocs(customersCol);
+        const snapshot = await getDocs(collection(window.db, "customers"));
         const select = document.getElementById('customerSelect');
         select.innerHTML = '<option value="">-- Select Customer --</option>';
+        const customersDiv = document.getElementById('customersList');
+        if(customersDiv) customersDiv.innerHTML = '';
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
             select.innerHTML += `<option value="${docSnap.id}" data-balance="${data.previousBalance || 0}">${data.name} (Bal: ${(data.previousBalance||0).toFixed(2)})</option>`;
+            if(customersDiv) customersDiv.innerHTML += `<div class="list-item"><i class="fas fa-user"></i> <strong>${data.name}</strong><br>Balance: ₹${(data.previousBalance||0).toFixed(2)}<br><small>ID: ${docSnap.id}</small></div>`;
         });
         select.onchange = async (e) => {
             const id = e.target.value;
             if(id){
                 const snap = await getDoc(doc(window.db, "customers", id));
-                if(snap.exists()){
-                    currentCustomer = { id: snap.id, name: snap.data().name, previousBalance: snap.data().previousBalance || 0 };
-                    document.getElementById('prevBalanceDisplay').innerText = currentCustomer.previousBalance.toFixed(2);
-                    computeTotals();
-                }
+                if(snap.exists()){ currentCustomer = { id, ...snap.data() }; document.getElementById('prevBalanceDisplay').innerText = currentCustomer.previousBalance.toFixed(2); computeTotals(); }
             } else { currentCustomer = { id: null, name: '', previousBalance: 0 }; document.getElementById('prevBalanceDisplay').innerText = '0.00'; computeTotals();}
         };
     }
-    
-    async function loadBooksPreview() {
-        const booksCol = collection(window.db, "books");
-        const snapshot = await getDocs(booksCol);
-        const container = document.getElementById('booksListPreview');
-        if(container) container.innerHTML = '<strong>📖 Recent Books:</strong><br>';
+
+    async function loadBooksList() {
+        const snapshot = await getDocs(collection(window.db, "books"));
+        const container = document.getElementById('booksList');
+        if(container) container.innerHTML = '';
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            container.innerHTML += `<div style="font-size:0.8rem; padding:4px;">📕 ${data.name} - ₹${data.price} [${docSnap.id}]</div>`;
+            if(container) container.innerHTML += `<div class="list-item"><i class="fas fa-book"></i> <strong>${data.name}</strong><br>Barcode: ${docSnap.id}<br>Price: ₹${data.price}<button class="btn-outline" style="margin-top:6px;" onclick="window.addToBillFromBook('${docSnap.id}','${data.name.replace(/'/g,"\\'")}',${data.price})"><i class="fas fa-cart-plus"></i> Add to Bill</button></div>`;
         });
     }
-    
-    // Scanner: Add to Bill directly
-    function startScannerForBill() {
-        if(scannerActive) return;
-        document.getElementById('scannerContainer').style.display = 'block';
-        Quagga.init({
-            inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#interactive") },
-            decoder: { readers: ["ean_reader", "code_128_reader", "ean_8_reader"] }
-        }, (err) => {
-            if(err) { showToast("Camera error",true); return; }
-            Quagga.start();
-            scannerActive = true;
-            Quagga.onDetected(async (data) => {
-                let code = data.codeResult.code;
-                Quagga.stop(); scannerActive=false; document.getElementById('scannerContainer').style.display='none';
-                await handleBarcodeForBill(code);
-            });
+
+    window.addToBillFromBook = (barcode, name, price) => {
+        document.querySelector('.nav-card[data-page="posPage"]').click();
+        let existing = billItems.find(i => i.barcode === barcode);
+        if(existing) existing.quantity += 1;
+        else billItems.push({ barcode, name, price, quantity: 1 });
+        renderBillTable();
+        computeTotals();
+        showToast(`Added ${name}`);
+    };
+
+    async function loadLedger() {
+        const q = query(collection(window.db, "ledger"), orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+        const container = document.getElementById('ledgerList');
+        if(container) container.innerHTML = '';
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if(container) container.innerHTML += `<div class="list-item" onclick="alert('Items: ${data.items?.map(i=>`${i.name} x${i.quantity}`).join(', ')}\\nGrand Total: ₹${data.grandTotal}')"><i class="fas fa-receipt"></i> <strong>${data.customerName}</strong><br>${new Date(data.timestamp).toLocaleString()}<br>Total: ₹${data.grandTotal} | Paid: ₹${data.amountPaid}</div>`;
         });
     }
-    
+
     async function handleBarcodeForBill(barcode) {
         const bookRef = doc(window.db, "books", barcode);
         const snap = await getDoc(bookRef);
         if(snap.exists()) {
             const book = snap.data();
-            // if already in bill, load previous quantity for increment
-            let existingItem = billItems.find(i => i.barcode === barcode);
-            let defaultQty = existingItem ? existingItem.quantity + 1 : 1;
-            openItemModal(book.name, book.price, defaultQty, (name, price, qty) => {
-                if(existingItem){
-                    existingItem.quantity = qty;
-                    existingItem.price = price;
-                } else {
-                    billItems.push({ barcode, name: book.name, price, quantity: qty });
-                }
-                renderBillTable();
-                computeTotals();
-                showToast(`Added ${book.name} x${qty}`);
-            });
-        } else {
-            let newName = prompt("New Book! Enter name:");
-            if(newName){
-                let newPrice = parseFloat(prompt("Enter price:"));
-                if(!isNaN(newPrice)){
-                    await setDoc(bookRef, { name: newName, price: newPrice });
-                    showToast("Book saved");
-                    openItemModal(newName, newPrice, 1, (n,p,q)=> { billItems.push({ barcode, name: n, price: p, quantity: q }); renderBillTable(); computeTotals(); });
-                }
-            }
-        }
-    }
-    
-    async function searchBookByBarcode() {
-        let barcode = document.getElementById('manualBarcodeInput').value.trim();
-        if(!barcode) { showToast("Enter barcode",true); return; }
-        const bookRef = doc(window.db, "books", barcode);
-        const snap = await getDoc(bookRef);
-        if(snap.exists()){
-            let book = snap.data();
-            let existing = billItems.find(i=>i.barcode === barcode);
-            let qty = existing ? existing.quantity+1 : 1;
-            openItemModal(book.name, book.price, qty, (n,p,q)=>{
+            let existing = billItems.find(i => i.barcode === barcode);
+            let qty = existing ? existing.quantity + 1 : 1;
+            openItemModal(book.name, book.price, qty, (n, p, q) => {
                 if(existing){ existing.quantity = q; existing.price = p; }
-                else { billItems.push({ barcode, name: n, price: p, quantity: q }); }
+                else billItems.push({ barcode, name: n, price: p, quantity: q });
                 renderBillTable(); computeTotals();
             });
         } else {
-            if(confirm("Not found. Add new?")){
-                let name = prompt("Book name");
-                let price = parseFloat(prompt("Price"));
-                if(name && !isNaN(price)){
+            let name = prompt("New Book! Enter name:");
+            if(name){
+                let price = parseFloat(prompt("Price:"));
+                if(!isNaN(price)){
                     await setDoc(bookRef, { name, price });
-                    showToast("Added");
+                    showToast("Book saved");
                     openItemModal(name, price, 1, (n,p,q)=>{ billItems.push({ barcode, name:n, price:p, quantity:q }); renderBillTable(); computeTotals(); });
+                    loadBooksList();
                 }
             }
         }
-        document.getElementById('manualBarcodeInput').value='';
     }
-    
+
     function openItemModal(name, price, quantity, onConfirm) {
         document.getElementById('modalItemName').value = name;
         document.getElementById('modalPrice').value = price;
@@ -558,171 +621,101 @@
         window.modalCallback = () => {
             let newPrice = parseFloat(document.getElementById('modalPrice').value);
             let newQty = parseInt(document.getElementById('modalQty').value);
-            if(!isNaN(newPrice) && !isNaN(newQty) && newQty>0) onConfirm(name, newPrice, newQty);
-            else showToast("Invalid input",true);
+            if(!isNaN(newPrice) && newQty>0) onConfirm(name, newPrice, newQty);
             closeModal();
         };
         document.getElementById('itemModal').style.display = 'flex';
     }
     function closeModal() { document.getElementById('itemModal').style.display = 'none'; }
-    
+
     function renderBillTable() {
         const tbody = document.getElementById('billItemsBody');
         tbody.innerHTML = '';
         billItems.forEach((item, idx) => {
             let row = tbody.insertRow();
             row.insertCell(0).innerText = item.name;
-            row.insertCell(1).innerHTML = `<span>${item.quantity}</span>`;
+            row.insertCell(1).innerText = item.quantity;
             row.insertCell(2).innerText = item.price.toFixed(2);
             row.insertCell(3).innerText = (item.price * item.quantity).toFixed(2);
-            let delCell = row.insertCell(4);
             let delBtn = document.createElement('button');
             delBtn.innerHTML = '<i class="fas fa-trash"></i>';
             delBtn.className = 'btn-outline';
-            delBtn.style.background = '#fee2e2';
             delBtn.onclick = () => { billItems.splice(idx,1); renderBillTable(); computeTotals(); };
-            delCell.appendChild(delBtn);
-            // Edit on row click
+            let cell = row.insertCell(4);
+            cell.appendChild(delBtn);
             row.style.cursor = 'pointer';
-            row.onclick = (e) => { if(e.target.tagName!='BUTTON') openItemModal(item.name, item.price, item.quantity, (n,p,q)=>{ item.price = p; item.quantity = q; renderBillTable(); computeTotals(); }); };
+            row.onclick = (e) => { if(e.target.tagName!='BUTTON') openItemModal(item.name, item.price, item.quantity, (n,p,q)=>{ item.price=p; item.quantity=q; renderBillTable(); computeTotals(); }); };
         });
     }
-    
+
     function computeTotals() {
-        let subtotal = billItems.reduce((s, i) => s + (i.price * i.quantity), 0);
-        let discountAmt = subtotal * (discountPercent/100);
-        let totalAfterDisc = subtotal - discountAmt;
-        let prevBal = currentCustomer.previousBalance || 0;
-        let grandTotal = totalAfterDisc + prevBal;
+        let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
+        let discAmt = sub * (discountPercent/100);
+        let afterDisc = sub - discAmt;
+        let prev = currentCustomer.previousBalance || 0;
+        let grand = afterDisc + prev;
         let paid = parseFloat(document.getElementById('paidAmount').value) || 0;
-        let balance = grandTotal - paid;
-        document.getElementById('totalBillSpan').innerText = subtotal.toFixed(2);
-        document.getElementById('discountAmountSpan').innerText = discountAmt.toFixed(2);
-        document.getElementById('discPercSpan').innerText = discountPercent;
-        document.getElementById('prevBalSpan').innerText = prevBal.toFixed(2);
-        document.getElementById('grandTotalSpan').innerText = grandTotal.toFixed(2);
+        let balance = grand - paid;
+        document.getElementById('totalBillSpan').innerText = sub.toFixed(2);
+        document.getElementById('discountAmountSpan').innerText = discAmt.toFixed(2);
+        document.getElementById('prevBalSpan').innerText = prev.toFixed(2);
+        document.getElementById('grandTotalSpan').innerText = grand.toFixed(2);
         document.getElementById('balanceSpan').innerText = balance.toFixed(2);
     }
-    
+
     async function generateAndSaveBill() {
-        if(!currentCustomer.id) { showToast("Select customer first",true); return; }
-        if(billItems.length===0) { showToast("No items in bill",true); return; }
-        let subtotal = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
-        let discountAmt = subtotal*(discountPercent/100);
-        let totalAfterDisc = subtotal-discountAmt;
-        let prevBal = currentCustomer.previousBalance;
-        let grandTotal = totalAfterDisc + prevBal;
+        if(!currentCustomer.id) { showToast("Select customer",true); return; }
+        if(billItems.length===0) { showToast("No items",true); return; }
+        let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
+        let discAmt = sub*(discountPercent/100);
+        let grand = (sub - discAmt) + currentCustomer.previousBalance;
         let paid = parseFloat(document.getElementById('paidAmount').value)||0;
-        let balance = grandTotal - paid;
-        let ledgerEntry = {
-            customerId: currentCustomer.id, customerName: currentCustomer.name, items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})),
-            subtotal, discountPercent, discountAmount: discountAmt, previousBalance: prevBal, grandTotal, amountPaid: paid, balanceDue: balance, timestamp: new Date().toISOString()
-        };
-        await addDoc(collection(window.db, "ledger"), ledgerEntry);
-        let newBalance = prevBal + balance;
-        await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
+        let balance = grand - paid;
+        let newBalance = currentCustomer.previousBalance + balance;
+        let ledgerData = { customerId: currentCustomer.id, customerName: currentCustomer.name, items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), subtotal:sub, discountPercent, discountAmount:discAmt, previousBalance:currentCustomer.previousBalance, grandTotal:grand, amountPaid:paid, balanceDue:balance, timestamp: new Date().toISOString(), newBalance };
+        if(isOnline){
+            await addDoc(collection(window.db, "ledger"), ledgerData);
+            await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
+        } else {
+            let pending = JSON.parse(localStorage.getItem('pendingBills') || '[]');
+            pending.push(ledgerData);
+            localStorage.setItem('pendingBills', JSON.stringify(pending));
+            showToast("Offline: Bill saved locally, will sync later");
+        }
         currentCustomer.previousBalance = newBalance;
         document.getElementById('prevBalanceDisplay').innerText = newBalance.toFixed(2);
-        // PDF
-        const billDiv = document.createElement('div');
-        billDiv.style.padding = '20px';
-        billDiv.innerHTML = `<div style="text-align:center"><h2>SANA BOOK DEPOT Usman Bazar Havelian</h2><p>+923235124366</p></div>
-        <p><strong>Customer:</strong> ${currentCustomer.name}</p><p>${new Date().toLocaleString()}</p>
-        <table border="1" cellpadding="5" style="width:100%"><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>
-        ${billItems.map(i=>`<tr><td>${i.name}</td><td>${i.quantity}</td><td>${i.price}</td><td>${(i.price*i.quantity).toFixed(2)}</td></tr>`).join('')}</table>
-        <p>Total: ${subtotal.toFixed(2)} | Discount: ${discountAmt.toFixed(2)} | Prev Bal: ${prevBal.toFixed(2)}</p>
-        <p><strong>Grand Total: ${grandTotal.toFixed(2)}</strong> | Paid: ${paid.toFixed(2)} | Balance: ${balance.toFixed(2)}</p><p>Thank you!</p>`;
-        html2pdf().from(billDiv).set({ filename: `Bill_${currentCustomer.name}_${new Date().toISOString().slice(0,19)}.pdf` }).save();
-        showToast("Bill saved & PDF downloaded");
+        // PDF generation
+        const div = document.createElement('div');
+        div.innerHTML = `<div style="text-align:center"><h2>SANA BOOK DEPOT</h2><p>+923235124366</p></div><p>Customer: ${currentCustomer.name}</p><p>${new Date().toLocaleString()}</p><table border="1">${billItems.map(i=>`<tr><td>${i.name}</td><td>${i.quantity}</td><td>${i.price}</td><td>${(i.price*i.quantity).toFixed(2)}</td></tr>`).join('')}</table><p>Grand Total: ${grand.toFixed(2)}</p><p>Thank You!</p>`;
+        html2pdf().from(div).save();
         billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent=0; document.getElementById('discountPercent').value=0; computeTotals();
+        if(isOnline) loadLedger();
     }
-    
-    async function showLedgerBills() {
-        const q = query(collection(window.db, "ledger"), orderBy("timestamp", "desc"));
-        const snap = await getDocs(q);
-        const container = document.getElementById('ledgerListContainer');
-        container.innerHTML = '';
-        snap.forEach(docSnap=>{
-            let data = docSnap.data();
-            let div = document.createElement('div');
-            div.className = 'ledger-item';
-            div.innerHTML = `<i class="fas fa-receipt"></i> <strong>${data.customerName}</strong> | ${new Date(data.timestamp).toLocaleString()} <br> Grand Total: ₹${data.grandTotal.toFixed(2)} | Balance: ₹${data.balanceDue.toFixed(2)}`;
-            div.onclick = () => alert(`Bill Details:\nItems: ${data.items.map(i=>`${i.name} x${i.quantity}`).join(', ')}\nGrand Total: ${data.grandTotal}\nPaid: ${data.amountPaid}`);
-            container.appendChild(div);
-        });
-    }
-    
-    async function addNewCustomer() {
-        let name = prompt("Enter customer name");
-        if(name){
-            await addDoc(collection(window.db, "customers"), { name, previousBalance: 0 });
-            showToast("Customer added");
-            loadCustomers();
-        }
-    }
-    
-    async function manualAddBook() {
-        let barcode = prompt("Enter barcode");
-        let name = prompt("Book name");
-        let price = parseFloat(prompt("Price"));
-        if(barcode && name && !isNaN(price)){
-            await setDoc(doc(window.db, "books", barcode), { name, price });
-            showToast("Book saved");
-            loadBooksPreview();
-        }
-    }
-    
-    async function bluetoothPrint() { 
-        if(billItems.length===0){ showToast("No bill",true); return; }
-        let text = `SANA BOOK DEPOT\n+923235124366\nCustomer: ${currentCustomer.name}\n`;
-        billItems.forEach(i=>{ text+=`${i.name} x${i.quantity} = ${(i.price*i.quantity).toFixed(2)}\n`; });
-        let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
-        let grand = sub - (sub*discountPercent/100) + (currentCustomer.previousBalance||0);
-        text+=`Total: ${sub.toFixed(2)} | Grand: ${grand.toFixed(2)}\nThank you!\n\n\n`;
-        try {
-            const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }] });
-            const server = await device.gatt.connect();
-            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-            const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-            const encoder = new TextEncoder();
-            await characteristic.writeValue(encoder.encode(text + '\x1D\x56\x42\x00'));
-            showToast("Print job sent");
-        } catch(e) { showToast("Bluetooth error", true); }
-    }
-    
-    function shareWhatsApp() {
-        let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
-        let grand = sub - (sub*discountPercent/100) + (currentCustomer.previousBalance||0);
-        let msg = `SANA BOOK DEPOT\nCustomer: ${currentCustomer.name}\nItems: ${billItems.map(i=>`${i.name} x${i.quantity}`).join(', ')}\nGrand Total: ${grand.toFixed(2)}`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
-    }
-    
+
+    // Event Handlers
     function attachEvents() {
-        document.getElementById('startScanBtn').onclick = startScannerForBill;
+        document.querySelectorAll('.nav-card').forEach(card => {
+            card.onclick = () => {
+                document.querySelectorAll('.nav-card').forEach(c=>c.classList.remove('active'));
+                card.classList.add('active');
+                document.querySelectorAll('.page').forEach(p=>p.classList.remove('active-page'));
+                document.getElementById(card.dataset.page).classList.add('active-page');
+            };
+        });
+        document.getElementById('startScanBtn').onclick = () => { document.getElementById('scannerContainer').style.display='block'; Quagga.init({ inputStream:{target:"#interactive", type:"LiveStream"}, decoder:{readers:["ean_reader","code_128_reader"]} },(err)=>{ if(!err){ Quagga.start(); scannerActive=true; Quagga.onDetected(async(d)=>{ Quagga.stop(); scannerActive=false; document.getElementById('scannerContainer').style.display='none'; await handleBarcodeForBill(d.codeResult.code); }); } else showToast("Camera error",true); }); };
         document.getElementById('stopScannerBtn').onclick = () => { if(scannerActive) Quagga.stop(); scannerActive=false; document.getElementById('scannerContainer').style.display='none'; };
-        document.getElementById('searchBookBtn').onclick = searchBookByBarcode;
-        document.getElementById('newCustomerBtn').onclick = addNewCustomer;
-        document.getElementById('manualAddBookBtn').onclick = manualAddBook;
+        document.getElementById('searchBookBtn').onclick = async () => { let bc = document.getElementById('manualBarcodeInput').value; if(bc) await handleBarcodeForBill(bc); };
+        document.getElementById('newCustomerBtn').onclick = async () => { let name = prompt("Customer name"); if(name){ await addDoc(collection(window.db, "customers"), { name, previousBalance:0 }); loadCustomers(); showToast("Added"); } };
+        document.getElementById('manualAddBookBtn').onclick = async () => { let bc = prompt("Barcode"); let name = prompt("Name"); let price = parseFloat(prompt("Price")); if(bc && name && !isNaN(price)){ await setDoc(doc(window.db,"books",bc),{name,price}); loadBooksList(); showToast("Book saved"); } };
         document.getElementById('generatePdfBtn').onclick = generateAndSaveBill;
-        document.getElementById('refreshLedgerBtn').onclick = showLedgerBills;
-        document.getElementById('bluetoothPrintBtn').onclick = bluetoothPrint;
-        document.getElementById('whatsappBtn').onclick = shareWhatsApp;
-        document.getElementById('applyDiscountBtn')?.addEventListener('click', () => { discountPercent = parseFloat(document.getElementById('discountPercent').value)||0; computeTotals(); });
+        document.getElementById('refreshLedgerBtn').onclick = loadLedger;
+        document.getElementById('bluetoothPrintBtn').onclick = async () => { if(billItems.length===0){showToast("No bill",true);return;} let text = `SANA BOOK DEPOT\n${currentCustomer.name}\n`+billItems.map(i=>`${i.name} x${i.quantity}=${i.price*i.quantity}`).join('\n')+`\nGrand: ${document.getElementById('grandTotalSpan').innerText}\nThank you`; try{ const device = await navigator.bluetooth.requestDevice({filters:[{services:['000018f0-0000-1000-8000-00805f9b34fb']}]}); const server = await device.gatt.connect(); const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb'); const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb'); await char.writeValue(new TextEncoder().encode(text+'\x1D\x56\x42\x00')); showToast("Print sent"); } catch(e){ showToast("BT error",true); } };
+        document.getElementById('whatsappBtn').onclick = () => { let msg = `SANA BOOK DEPOT\n${currentCustomer.name}\nTotal: ${document.getElementById('grandTotalSpan').innerText}`; window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank'); };
+        document.getElementById('addCustomerPageBtn').onclick = document.getElementById('newCustomerBtn').onclick;
+        document.getElementById('discountPercent').addEventListener('input', (e) => { discountPercent = parseFloat(e.target.value)||0; computeTotals(); });
         document.getElementById('paidAmount').addEventListener('input', computeTotals);
         document.getElementById('modalConfirm').onclick = () => { window.modalCallback && window.modalCallback(); };
         document.getElementById('modalCancel').onclick = closeModal;
-        // Tabs
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-                btn.classList.add('active');
-                document.querySelectorAll('.category-panel').forEach(panel=>panel.classList.remove('active-panel'));
-                document.getElementById(btn.dataset.tab).classList.add('active-panel');
-                if(btn.dataset.tab === 'ledgerTab') showLedgerBills();
-                if(btn.dataset.tab === 'booksTab') loadBooksPreview();
-            };
-        });
-        document.getElementById('discountPercent')?.addEventListener('input', (e) => { discountPercent = parseFloat(e.target.value)||0; computeTotals(); });
     }
 </script>
 </body>
