@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Sana Book Depot - POS System</title>
-    <!-- Google Fonts & Font Awesome 6 -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- QuaggaJS Barcode Scanner -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    <!-- html2pdf.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <!-- Firebase 9 modular -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
         import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, orderBy, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
@@ -29,13 +25,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // Enable offline persistence
         enableIndexedDbPersistence(db).catch((err) => {
-            if (err.code === 'failed-precondition') {
-                console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-            } else if (err.code === 'unimplemented') {
-                console.warn('Browser doesn\'t support persistence');
-            }
+            console.warn('Offline persistence limited:', err);
         });
         
         window.db = db;
@@ -76,7 +67,7 @@
             align-items: center;
             justify-content: center;
             z-index: 10000;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
+            transition: opacity 0.8s ease;
         }
         .startup-content {
             text-align: center;
@@ -101,12 +92,10 @@
             font-weight: 900;
             color: white;
             margin-top: 20px;
-            letter-spacing: -0.5px;
         }
         .startup-subtitle {
             color: #cbd5e1;
             margin-top: 10px;
-            font-size: 1rem;
         }
         .loading-bar {
             width: 200px;
@@ -117,7 +106,7 @@
             overflow: hidden;
         }
         .loading-progress {
-            width: 0%;
+            width: 100%;
             height: 100%;
             background: #f5c542;
             animation: loadProgress 2s ease forwards;
@@ -126,7 +115,7 @@
             0% { width: 0%; }
             100% { width: 100%; }
         }
-        /* Connection Status Dot */
+        /* Connection Status */
         .connection-status {
             position: fixed;
             top: 16px;
@@ -155,7 +144,6 @@
             height: 12px;
             background-color: #e74c3c;
             border-radius: 50%;
-            box-shadow: 0 0 8px #e74c3c;
         }
         @keyframes pulse-green {
             0%, 100% { opacity: 1; transform: scale(1); }
@@ -166,7 +154,7 @@
             margin: 0 auto;
             padding: 16px;
         }
-        /* Navigation Cards for Categories */
+        /* Navigation Cards */
         .nav-cards {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -199,9 +187,7 @@
         .nav-card h3 {
             font-size: 0.9rem;
             font-weight: 700;
-            margin-top: 8px;
         }
-        /* Page Containers */
         .page {
             display: none;
             animation: fadeIn 0.4s ease;
@@ -269,6 +255,18 @@
             border: 1px solid #d1d5db;
             font-size: 0.9rem;
         }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-group input {
+            flex: 1;
+        }
+        .input-group button {
+            margin: 0;
+            white-space: nowrap;
+        }
         .bill-table {
             width: 100%;
             border-collapse: collapse;
@@ -290,21 +288,62 @@
             padding: 12px;
             border-radius: 20px;
         }
+        /* Professional Modal */
         .modal {
             display: none;
             position: fixed;
-            top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.6);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
             align-items: center;
             justify-content: center;
             z-index: 1100;
         }
         .modal-content {
             background: white;
-            padding: 28px;
+            padding: 32px;
             border-radius: 36px;
             width: 90%;
-            max-width: 400px;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            animation: modalSlide 0.3s ease;
+        }
+        @keyframes modalSlide {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-content h3 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .modal-content h3 i {
+            color: #2c5364;
+        }
+        .camera-preview-small {
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 10px 0;
+            position: relative;
+        }
+        #smallScannerView {
+            width: 100%;
+            height: auto;
+            min-height: 200px;
+        }
+        .flex-btns {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
         }
         .toast {
             position: fixed;
@@ -320,10 +359,6 @@
             transition: 0.3s;
             font-weight: 500;
         }
-        @media (max-width: 700px) {
-            .nav-cards { grid-template-columns: repeat(2, 1fr); }
-            .shop-name { font-size: 1.4rem; }
-        }
         .list-item {
             background: #f8fafc;
             border-radius: 16px;
@@ -331,14 +366,15 @@
             margin-bottom: 10px;
             cursor: pointer;
             border: 1px solid #e2e8f0;
+            transition: 0.2s;
         }
-        .offline-badge {
-            background: #f59e0b;
-            color: white;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 20px;
-            margin-left: 8px;
+        .list-item:hover {
+            background: #eef2ff;
+            transform: translateX(4px);
+        }
+        @media (max-width: 700px) {
+            .nav-cards { grid-template-columns: repeat(2, 1fr); }
+            .shop-name { font-size: 1.4rem; }
         }
     </style>
 </head>
@@ -346,15 +382,11 @@
 <!-- Startup Screen -->
 <div id="startupScreen">
     <div class="startup-content">
-        <div class="book-logo">
-            <i class="fas fa-book-open"></i>
-        </div>
+        <div class="book-logo"><i class="fas fa-book-open"></i></div>
         <div class="startup-title">SANA BOOK DEPOT</div>
         <div class="startup-subtitle">Professional POS Billing System</div>
-        <div class="loading-bar">
-            <div class="loading-progress"></div>
-        </div>
-        <div class="startup-subtitle" style="margin-top: 15px; font-size: 0.8rem;">Initializing Firebase...</div>
+        <div class="loading-bar"><div class="loading-progress"></div></div>
+        <div class="startup-subtitle" style="margin-top: 15px;">Initializing Firebase...</div>
     </div>
 </div>
 
@@ -367,69 +399,41 @@
 <div class="container" style="display: none;" id="appMain">
     <div class="shop-header">
         <div class="shop-name">📚 SANA BOOK DEPOT USMAN BAZAR HAVELIAN 📚</div>
-        <div style="font-weight: 600; margin-top: 5px;"><i class="fas fa-phone-alt"></i> +923235124366</div>
+        <div style="font-weight: 600;"><i class="fas fa-phone-alt"></i> +923235124366</div>
     </div>
 
     <!-- Navigation Cards -->
     <div class="nav-cards">
-        <div class="nav-card" data-page="posPage">
-            <i class="fas fa-shopping-cart"></i>
-            <h3>POS / Billing</h3>
-        </div>
-        <div class="nav-card" data-page="booksPage">
-            <i class="fas fa-book"></i>
-            <h3>Books Database</h3>
-        </div>
-        <div class="nav-card" data-page="customersPage">
-            <i class="fas fa-users"></i>
-            <h3>Customers</h3>
-        </div>
-        <div class="nav-card" data-page="ledgerPage">
-            <i class="fas fa-receipt"></i>
-            <h3>Bills Ledger</h3>
-        </div>
+        <div class="nav-card active" data-page="posPage"><i class="fas fa-shopping-cart"></i><h3>POS / Billing</h3></div>
+        <div class="nav-card" data-page="booksPage"><i class="fas fa-book"></i><h3>Books Database</h3></div>
+        <div class="nav-card" data-page="customersPage"><i class="fas fa-users"></i><h3>Customers</h3></div>
+        <div class="nav-card" data-page="ledgerPage"><i class="fas fa-receipt"></i><h3>Bills Ledger</h3></div>
     </div>
 
     <!-- POS PAGE -->
     <div id="posPage" class="page active-page">
-        <div class="card">
-            <h2><i class="fas fa-user"></i> Customer Selection</h2>
+        <div class="card"><h2><i class="fas fa-user"></i> Customer</h2>
             <select id="customerSelect"></select>
             <button id="newCustomerBtn"><i class="fas fa-user-plus"></i> New Customer</button>
             <div>Previous Balance: <strong id="prevBalanceDisplay">0.00 PKR</strong></div>
         </div>
-        <div class="card">
-            <h2><i class="fas fa-barcode"></i> Add Items</h2>
-            <button id="startScanBtn"><i class="fas fa-camera"></i> Scan Barcode (Camera)</button>
-            <div style="margin-top: 10px;">
-                <input type="text" id="manualBarcodeInput" placeholder="Enter barcode manually">
-                <button id="searchBookBtn"><i class="fas fa-search"></i> Add to Bill</button>
-            </div>
-            <div id="scannerContainer" style="display:none; margin-top: 10px;">
-                <div id="interactive" class="viewport"></div>
-                <button id="stopScannerBtn" class="btn-outline"><i class="fas fa-stop"></i> Stop</button>
-            </div>
+        <div class="card"><h2><i class="fas fa-barcode"></i> Add Items</h2>
+            <button id="startScanBtn"><i class="fas fa-camera"></i> Scan Barcode</button>
+            <div style="margin-top:10px;"><input type="text" id="manualBarcodeInput" placeholder="Enter barcode"><button id="searchBookBtn">Add to Bill</button></div>
+            <div id="scannerContainer" style="display:none;"><div id="interactive"></div><button id="stopScannerBtn" class="btn-outline">Stop</button></div>
         </div>
-        <div class="card">
-            <h2><i class="fas fa-receipt"></i> Current Bill</h2>
-            <div style="overflow-x:auto;">
-                <table class="bill-table">
-                    <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th><th></th></tr></thead>
-                    <tbody id="billItemsBody"></tbody>
-                </table>
-            </div>
-            <div>
-                <div class="totals-row"><span>Total Bill:</span><span id="totalBillSpan">0.00</span></div>
-                <div class="totals-row"><span>Discount %:</span><input type="number" id="discountPercent" value="0" step="any" style="width:100px;"></div>
-                <div class="totals-row"><span>Discount Amount:</span><span id="discountAmountSpan">0.00</span></div>
-                <div class="totals-row"><span>Previous Balance:</span><span id="prevBalSpan">0.00</span></div>
-                <div class="totals-row grand-total"><span>Grand Total:</span><span id="grandTotalSpan">0.00</span></div>
-                <div class="totals-row"><span>Amount Paid:</span><input type="number" id="paidAmount" value="0" step="any" style="width:130px;"></div>
-                <div class="totals-row"><span>Balance:</span><span id="balanceSpan">0.00</span></div>
-            </div>
+        <div class="card"><h2><i class="fas fa-receipt"></i> Current Bill</h2>
+            <table class="bill-table"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th><th></th></tr></thead><tbody id="billItemsBody"></tbody></table>
+            <div><div class="totals-row"><span>Total Bill:</span><span id="totalBillSpan">0.00</span></div>
+            <div class="totals-row"><span>Discount %:</span><input type="number" id="discountPercent" value="0" step="any" style="width:100px;"></div>
+            <div class="totals-row"><span>Discount Amount:</span><span id="discountAmountSpan">0.00</span></div>
+            <div class="totals-row"><span>Previous Balance:</span><span id="prevBalSpan">0.00</span></div>
+            <div class="totals-row grand-total"><span>Grand Total:</span><span id="grandTotalSpan">0.00</span></div>
+            <div class="totals-row"><span>Amount Paid:</span><input type="number" id="paidAmount" value="0" step="any" style="width:130px;"></div>
+            <div class="totals-row"><span>Balance:</span><span id="balanceSpan">0.00</span></div></div>
             <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;">
                 <button id="generatePdfBtn"><i class="fas fa-file-pdf"></i> Save Bill & PDF</button>
-                <button id="bluetoothPrintBtn"><i class="fab fa-bluetooth"></i> Bluetooth Print</button>
+                <button id="bluetoothPrintBtn"><i class="fab fa-bluetooth"></i> Print</button>
                 <button id="whatsappBtn"><i class="fab fa-whatsapp"></i> WhatsApp</button>
             </div>
         </div>
@@ -439,43 +443,54 @@
     <div id="booksPage" class="page">
         <div class="card">
             <h2><i class="fas fa-database"></i> Books Inventory</h2>
-            <button id="manualAddBookBtn"><i class="fas fa-plus-circle"></i> Add New Book</button>
+            <button id="openAddBookModalBtn"><i class="fas fa-plus-circle"></i> Add New Book</button>
             <div id="booksList" style="margin-top: 16px; max-height: 500px; overflow-y: auto;"></div>
         </div>
     </div>
 
     <!-- CUSTOMERS PAGE -->
     <div id="customersPage" class="page">
-        <div class="card">
-            <h2><i class="fas fa-address-card"></i> All Customers</h2>
-            <button id="addCustomerPageBtn"><i class="fas fa-user-plus"></i> Add Customer</button>
-            <div id="customersList" style="margin-top: 16px; max-height: 500px; overflow-y: auto;"></div>
-        </div>
+        <div class="card"><h2><i class="fas fa-address-card"></i> All Customers</h2><button id="addCustomerPageBtn"><i class="fas fa-user-plus"></i> Add Customer</button><div id="customersList" style="margin-top:16px;"></div></div>
     </div>
 
     <!-- LEDGER PAGE -->
     <div id="ledgerPage" class="page">
-        <div class="card">
-            <h2><i class="fas fa-history"></i> Bill Ledger</h2>
-            <button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
-            <div id="ledgerList" style="margin-top: 16px; max-height: 500px; overflow-y: auto;"></div>
+        <div class="card"><h2><i class="fas fa-history"></i> Bill Ledger</h2><button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Refresh</button><div id="ledgerList" style="margin-top:16px;"></div></div>
+    </div>
+</div>
+
+<!-- Professional Add Book Modal -->
+<div id="addBookModal" class="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-book"></i> Add New Record</h3>
+        <div class="input-group">
+            <input type="text" id="newBookBarcode" placeholder="Barcode *" style="flex:1;">
+            <button id="scanBarcodeModalBtn" class="btn-outline" style="margin:0;"><i class="fas fa-camera"></i> Scan</button>
+        </div>
+        <div id="modalCameraContainer" style="display:none; margin:10px 0;">
+            <div id="modalScannerView" style="background:#000; border-radius:20px; overflow:hidden;"></div>
+            <button id="stopModalCameraBtn" class="btn-outline" style="margin-top:8px; width:100%;">Close Camera</button>
+        </div>
+        <input type="text" id="newBookName" placeholder="Book Name *">
+        <input type="number" id="newBookPrice" placeholder="Price *" step="any">
+        <div class="flex-btns">
+            <button id="cancelAddBookBtn" class="btn-outline">Cancel</button>
+            <button id="saveBookBtn"><i class="fas fa-save"></i> Save Record</button>
         </div>
     </div>
 </div>
 
-<div id="itemModal" class="modal"><div class="modal-content"><h3>Add/Edit Item</h3><input type="text" id="modalItemName" readonly><input type="number" id="modalPrice" placeholder="Price"><input type="number" id="modalQty" value="1"><div class="flex-btns" style="display:flex; gap:10px; margin-top:20px;"><button id="modalConfirm">Confirm</button><button id="modalCancel">Cancel</button></div></div></div>
+<div id="itemModal" class="modal"><div class="modal-content"><h3>Add/Edit Item</h3><input type="text" id="modalItemName" readonly><input type="number" id="modalPrice" placeholder="Price"><input type="number" id="modalQty" value="1"><div class="flex-btns"><button id="modalConfirm">Confirm</button><button id="modalCancel">Cancel</button></div></div></div>
 <div id="toastMsg" class="toast"></div>
 
 <script>
-    // App State
     let currentCustomer = { id: null, name: '', previousBalance: 0 };
     let billItems = [];
     let discountPercent = 0;
     let scannerActive = false;
+    let modalScannerActive = false;
     let isOnline = navigator.onLine;
-    let pendingSync = [];
 
-    // Toast
     function showToast(msg, isError = false) {
         const toast = document.getElementById('toastMsg');
         toast.style.background = isError ? '#c0392b' : '#2c5364';
@@ -484,57 +499,21 @@
         setTimeout(() => toast.style.opacity = '0', 3000);
     }
 
-    // Update connection status
     function updateConnectionStatus() {
         isOnline = navigator.onLine;
         const dot = document.getElementById('statusDot');
         const text = document.getElementById('statusText');
-        if (isOnline) {
-            dot.className = 'green-dot';
-            text.innerText = 'Connected to Firebase';
-            text.style.color = '#2ecc71';
-        } else {
-            dot.className = 'red-dot';
-            text.innerText = 'Offline Mode - Data will sync later';
-            text.style.color = '#e74c3c';
-            showToast('⚠️ Offline mode: Data saved locally, will sync when online', false);
-        }
+        if (isOnline) { dot.className = 'green-dot'; text.innerText = 'Connected to Firebase'; }
+        else { dot.className = 'red-dot'; text.innerText = 'Offline Mode'; showToast('Offline mode', false); }
     }
-
-    window.addEventListener('online', () => { updateConnectionStatus(); syncPendingOperations(); });
+    window.addEventListener('online', updateConnectionStatus);
     window.addEventListener('offline', updateConnectionStatus);
 
-    // Sync pending operations (basic - for demo we re-save ledger items)
-    async function syncPendingOperations() {
-        if (!isOnline) return;
-        const pending = JSON.parse(localStorage.getItem('pendingBills') || '[]');
-        for (let bill of pending) {
-            try {
-                await addDoc(collection(window.db, "ledger"), bill);
-                if (bill.customerId) await updateDoc(doc(window.db, "customers", bill.customerId), { previousBalance: bill.newBalance });
-            } catch(e) { console.warn(e); }
-        }
-        localStorage.setItem('pendingBills', '[]');
-        showToast('✅ Synced offline records to Firebase');
-        loadLedger();
-    }
-
-    // Firebase Ready
     window.addEventListener('firebaseReady', async () => {
-        setTimeout(() => {
-            document.getElementById('startupScreen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('startupScreen').style.display = 'none';
-                document.getElementById('appMain').style.display = 'block';
-            }, 800);
-        }, 2000);
+        setTimeout(() => { document.getElementById('startupScreen').style.opacity = '0'; setTimeout(() => { document.getElementById('startupScreen').style.display = 'none'; document.getElementById('appMain').style.display = 'block'; }, 800); }, 2000);
         updateConnectionStatus();
-        await loadCustomers();
-        await loadBooksList();
-        await loadLedger();
-        attachEvents();
-        computeTotals();
-        syncPendingOperations();
+        await loadCustomers(); await loadBooksList(); await loadLedger();
+        attachEvents(); computeTotals();
     });
 
     async function loadCustomers() {
@@ -545,15 +524,13 @@
         if(customersDiv) customersDiv.innerHTML = '';
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            select.innerHTML += `<option value="${docSnap.id}" data-balance="${data.previousBalance || 0}">${data.name} (Bal: ${(data.previousBalance||0).toFixed(2)})</option>`;
-            if(customersDiv) customersDiv.innerHTML += `<div class="list-item"><i class="fas fa-user"></i> <strong>${data.name}</strong><br>Balance: ₹${(data.previousBalance||0).toFixed(2)}<br><small>ID: ${docSnap.id}</small></div>`;
+            select.innerHTML += `<option value="${docSnap.id}">${data.name} (Bal: ${(data.previousBalance||0).toFixed(2)})</option>`;
+            if(customersDiv) customersDiv.innerHTML += `<div class="list-item"><i class="fas fa-user"></i> <strong>${data.name}</strong><br>Balance: ₹${(data.previousBalance||0).toFixed(2)}</div>`;
         });
         select.onchange = async (e) => {
             const id = e.target.value;
-            if(id){
-                const snap = await getDoc(doc(window.db, "customers", id));
-                if(snap.exists()){ currentCustomer = { id, ...snap.data() }; document.getElementById('prevBalanceDisplay').innerText = currentCustomer.previousBalance.toFixed(2); computeTotals(); }
-            } else { currentCustomer = { id: null, name: '', previousBalance: 0 }; document.getElementById('prevBalanceDisplay').innerText = '0.00'; computeTotals();}
+            if(id){ const snap = await getDoc(doc(window.db, "customers", id)); if(snap.exists()){ currentCustomer = { id, ...snap.data() }; document.getElementById('prevBalanceDisplay').innerText = currentCustomer.previousBalance.toFixed(2); computeTotals(); } }
+            else { currentCustomer = { id: null, name: '', previousBalance: 0 }; document.getElementById('prevBalanceDisplay').innerText = '0.00'; computeTotals(); }
         };
     }
 
@@ -563,7 +540,7 @@
         if(container) container.innerHTML = '';
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            if(container) container.innerHTML += `<div class="list-item"><i class="fas fa-book"></i> <strong>${data.name}</strong><br>Barcode: ${docSnap.id}<br>Price: ₹${data.price}<button class="btn-outline" style="margin-top:6px;" onclick="window.addToBillFromBook('${docSnap.id}','${data.name.replace(/'/g,"\\'")}',${data.price})"><i class="fas fa-cart-plus"></i> Add to Bill</button></div>`;
+            container.innerHTML += `<div class="list-item"><i class="fas fa-book"></i> <strong>${data.name}</strong><br>Barcode: ${docSnap.id}<br>Price: ₹${data.price}<button class="btn-outline" style="margin-top:6px;" onclick="window.addToBillFromBook('${docSnap.id}','${data.name.replace(/'/g,"\\'")}',${data.price})"><i class="fas fa-cart-plus"></i> Add to Bill</button></div>`;
         });
     }
 
@@ -572,9 +549,7 @@
         let existing = billItems.find(i => i.barcode === barcode);
         if(existing) existing.quantity += 1;
         else billItems.push({ barcode, name, price, quantity: 1 });
-        renderBillTable();
-        computeTotals();
-        showToast(`Added ${name}`);
+        renderBillTable(); computeTotals(); showToast(`Added ${name}`);
     };
 
     async function loadLedger() {
@@ -584,8 +559,58 @@
         if(container) container.innerHTML = '';
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            if(container) container.innerHTML += `<div class="list-item" onclick="alert('Items: ${data.items?.map(i=>`${i.name} x${i.quantity}`).join(', ')}\\nGrand Total: ₹${data.grandTotal}')"><i class="fas fa-receipt"></i> <strong>${data.customerName}</strong><br>${new Date(data.timestamp).toLocaleString()}<br>Total: ₹${data.grandTotal} | Paid: ₹${data.amountPaid}</div>`;
+            container.innerHTML += `<div class="list-item" onclick="alert('Items: ${data.items?.map(i=>`${i.name} x${i.quantity}`).join(', ')}\\nGrand Total: ₹${data.grandTotal}')"><i class="fas fa-receipt"></i> <strong>${data.customerName}</strong><br>${new Date(data.timestamp).toLocaleString()}<br>Total: ₹${data.grandTotal}</div>`;
         });
+    }
+
+    // Professional Add Book with Camera
+    async function openAddBookModal() {
+        document.getElementById('addBookModal').style.display = 'flex';
+        document.getElementById('newBookBarcode').value = '';
+        document.getElementById('newBookName').value = '';
+        document.getElementById('newBookPrice').value = '';
+        document.getElementById('modalCameraContainer').style.display = 'none';
+        if(modalScannerActive) { Quagga.stop(); modalScannerActive = false; }
+    }
+
+    async function startModalScanner() {
+        document.getElementById('modalCameraContainer').style.display = 'block';
+        if(modalScannerActive) Quagga.stop();
+        Quagga.init({
+            inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#modalScannerView") },
+            decoder: { readers: ["ean_reader", "code_128_reader", "ean_8_reader"] }
+        }, (err) => {
+            if(err) { showToast("Camera error", true); return; }
+            Quagga.start();
+            modalScannerActive = true;
+            Quagga.onDetected((data) => {
+                let code = data.codeResult.code;
+                document.getElementById('newBookBarcode').value = code;
+                Quagga.stop();
+                modalScannerActive = false;
+                document.getElementById('modalCameraContainer').style.display = 'none';
+                showToast(`Barcode scanned: ${code}`);
+            });
+        });
+    }
+
+    async function saveNewBook() {
+        const barcode = document.getElementById('newBookBarcode').value.trim();
+        const name = document.getElementById('newBookName').value.trim();
+        const price = parseFloat(document.getElementById('newBookPrice').value);
+        if(!barcode || !name || isNaN(price)) { showToast("Please fill all fields", true); return; }
+        const bookRef = doc(window.db, "books", barcode);
+        const existing = await getDoc(bookRef);
+        if(existing.exists()) { showToast("❌ Record already exists! Barcode already in database.", true); return; }
+        await setDoc(bookRef, { name, price });
+        showToast("✅ Record added successfully!");
+        document.getElementById('addBookModal').style.display = 'none';
+        await loadBooksList();
+        // Clear fields
+        document.getElementById('newBookBarcode').value = '';
+        document.getElementById('newBookName').value = '';
+        document.getElementById('newBookPrice').value = '';
+        if(modalScannerActive) { Quagga.stop(); modalScannerActive = false; }
     }
 
     async function handleBarcodeForBill(barcode) {
@@ -601,16 +626,7 @@
                 renderBillTable(); computeTotals();
             });
         } else {
-            let name = prompt("New Book! Enter name:");
-            if(name){
-                let price = parseFloat(prompt("Price:"));
-                if(!isNaN(price)){
-                    await setDoc(bookRef, { name, price });
-                    showToast("Book saved");
-                    openItemModal(name, price, 1, (n,p,q)=>{ billItems.push({ barcode, name:n, price:p, quantity:q }); renderBillTable(); computeTotals(); });
-                    loadBooksList();
-                }
-            }
+            if(confirm("Book not found. Would you like to add it now?")) openAddBookModal();
         }
     }
 
@@ -641,8 +657,7 @@
             delBtn.innerHTML = '<i class="fas fa-trash"></i>';
             delBtn.className = 'btn-outline';
             delBtn.onclick = () => { billItems.splice(idx,1); renderBillTable(); computeTotals(); };
-            let cell = row.insertCell(4);
-            cell.appendChild(delBtn);
+            row.insertCell(4).appendChild(delBtn);
             row.style.cursor = 'pointer';
             row.onclick = (e) => { if(e.target.tagName!='BUTTON') openItemModal(item.name, item.price, item.quantity, (n,p,q)=>{ item.price=p; item.quantity=q; renderBillTable(); computeTotals(); }); };
         });
@@ -672,27 +687,18 @@
         let paid = parseFloat(document.getElementById('paidAmount').value)||0;
         let balance = grand - paid;
         let newBalance = currentCustomer.previousBalance + balance;
-        let ledgerData = { customerId: currentCustomer.id, customerName: currentCustomer.name, items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), subtotal:sub, discountPercent, discountAmount:discAmt, previousBalance:currentCustomer.previousBalance, grandTotal:grand, amountPaid:paid, balanceDue:balance, timestamp: new Date().toISOString(), newBalance };
-        if(isOnline){
-            await addDoc(collection(window.db, "ledger"), ledgerData);
-            await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
-        } else {
-            let pending = JSON.parse(localStorage.getItem('pendingBills') || '[]');
-            pending.push(ledgerData);
-            localStorage.setItem('pendingBills', JSON.stringify(pending));
-            showToast("Offline: Bill saved locally, will sync later");
-        }
+        let ledgerData = { customerId: currentCustomer.id, customerName: currentCustomer.name, items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), subtotal:sub, discountPercent, discountAmount:discAmt, previousBalance:currentCustomer.previousBalance, grandTotal:grand, amountPaid:paid, balanceDue:balance, timestamp: new Date().toISOString() };
+        await addDoc(collection(window.db, "ledger"), ledgerData);
+        await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
         currentCustomer.previousBalance = newBalance;
         document.getElementById('prevBalanceDisplay').innerText = newBalance.toFixed(2);
-        // PDF generation
         const div = document.createElement('div');
         div.innerHTML = `<div style="text-align:center"><h2>SANA BOOK DEPOT</h2><p>+923235124366</p></div><p>Customer: ${currentCustomer.name}</p><p>${new Date().toLocaleString()}</p><table border="1">${billItems.map(i=>`<tr><td>${i.name}</td><td>${i.quantity}</td><td>${i.price}</td><td>${(i.price*i.quantity).toFixed(2)}</td></tr>`).join('')}</table><p>Grand Total: ${grand.toFixed(2)}</p><p>Thank You!</p>`;
         html2pdf().from(div).save();
-        billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent=0; document.getElementById('discountPercent').value=0; computeTotals();
-        if(isOnline) loadLedger();
+        showToast("Bill saved & PDF generated");
+        billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent=0; document.getElementById('discountPercent').value=0; computeTotals(); loadLedger();
     }
 
-    // Event Handlers
     function attachEvents() {
         document.querySelectorAll('.nav-card').forEach(card => {
             card.onclick = () => {
@@ -702,16 +708,20 @@
                 document.getElementById(card.dataset.page).classList.add('active-page');
             };
         });
+        document.getElementById('openAddBookModalBtn').onclick = openAddBookModal;
+        document.getElementById('scanBarcodeModalBtn').onclick = startModalScanner;
+        document.getElementById('saveBookBtn').onclick = saveNewBook;
+        document.getElementById('cancelAddBookBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'none'; if(modalScannerActive) Quagga.stop(); modalScannerActive=false; };
+        document.getElementById('stopModalCameraBtn').onclick = () => { if(modalScannerActive) Quagga.stop(); modalScannerActive=false; document.getElementById('modalCameraContainer').style.display = 'none'; };
         document.getElementById('startScanBtn').onclick = () => { document.getElementById('scannerContainer').style.display='block'; Quagga.init({ inputStream:{target:"#interactive", type:"LiveStream"}, decoder:{readers:["ean_reader","code_128_reader"]} },(err)=>{ if(!err){ Quagga.start(); scannerActive=true; Quagga.onDetected(async(d)=>{ Quagga.stop(); scannerActive=false; document.getElementById('scannerContainer').style.display='none'; await handleBarcodeForBill(d.codeResult.code); }); } else showToast("Camera error",true); }); };
         document.getElementById('stopScannerBtn').onclick = () => { if(scannerActive) Quagga.stop(); scannerActive=false; document.getElementById('scannerContainer').style.display='none'; };
         document.getElementById('searchBookBtn').onclick = async () => { let bc = document.getElementById('manualBarcodeInput').value; if(bc) await handleBarcodeForBill(bc); };
-        document.getElementById('newCustomerBtn').onclick = async () => { let name = prompt("Customer name"); if(name){ await addDoc(collection(window.db, "customers"), { name, previousBalance:0 }); loadCustomers(); showToast("Added"); } };
-        document.getElementById('manualAddBookBtn').onclick = async () => { let bc = prompt("Barcode"); let name = prompt("Name"); let price = parseFloat(prompt("Price")); if(bc && name && !isNaN(price)){ await setDoc(doc(window.db,"books",bc),{name,price}); loadBooksList(); showToast("Book saved"); } };
+        document.getElementById('newCustomerBtn').onclick = async () => { let name = prompt("Customer name"); if(name){ await addDoc(collection(window.db, "customers"), { name, previousBalance:0 }); loadCustomers(); showToast("Customer added"); } };
+        document.getElementById('addCustomerPageBtn').onclick = document.getElementById('newCustomerBtn').onclick;
         document.getElementById('generatePdfBtn').onclick = generateAndSaveBill;
         document.getElementById('refreshLedgerBtn').onclick = loadLedger;
-        document.getElementById('bluetoothPrintBtn').onclick = async () => { if(billItems.length===0){showToast("No bill",true);return;} let text = `SANA BOOK DEPOT\n${currentCustomer.name}\n`+billItems.map(i=>`${i.name} x${i.quantity}=${i.price*i.quantity}`).join('\n')+`\nGrand: ${document.getElementById('grandTotalSpan').innerText}\nThank you`; try{ const device = await navigator.bluetooth.requestDevice({filters:[{services:['000018f0-0000-1000-8000-00805f9b34fb']}]}); const server = await device.gatt.connect(); const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb'); const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb'); await char.writeValue(new TextEncoder().encode(text+'\x1D\x56\x42\x00')); showToast("Print sent"); } catch(e){ showToast("BT error",true); } };
+        document.getElementById('bluetoothPrintBtn').onclick = async () => { if(billItems.length===0){showToast("No bill",true);return;} let text = `SANA BOOK DEPOT\n${currentCustomer.name}\n`+billItems.map(i=>`${i.name} x${i.quantity}=${i.price*i.quantity}`).join('\n')+`\nGrand: ${document.getElementById('grandTotalSpan').innerText}`; try{ const device = await navigator.bluetooth.requestDevice({filters:[{services:['000018f0-0000-1000-8000-00805f9b34fb']}]}); const server = await device.gatt.connect(); const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb'); const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb'); await char.writeValue(new TextEncoder().encode(text+'\x1D\x56\x42\x00')); showToast("Print sent"); } catch(e){ showToast("BT error",true); } };
         document.getElementById('whatsappBtn').onclick = () => { let msg = `SANA BOOK DEPOT\n${currentCustomer.name}\nTotal: ${document.getElementById('grandTotalSpan').innerText}`; window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank'); };
-        document.getElementById('addCustomerPageBtn').onclick = document.getElementById('newCustomerBtn').onclick;
         document.getElementById('discountPercent').addEventListener('input', (e) => { discountPercent = parseFloat(e.target.value)||0; computeTotals(); });
         document.getElementById('paidAmount').addEventListener('input', computeTotals);
         document.getElementById('modalConfirm').onclick = () => { window.modalCallback && window.modalCallback(); };
