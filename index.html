@@ -52,6 +52,27 @@
             background: #f0f2f5;
             min-height: 100vh;
         }
+        /* Top Shop Name Bar */
+        .top-shop-bar {
+            background: linear-gradient(135deg, #1a2a36, #2c5364);
+            color: white;
+            text-align: center;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-shop-bar .shop-name {
+            font-weight: 900;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+        }
+        .top-shop-bar .shop-mobile {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
         #startupScreen {
             position: fixed;
             top: 0;
@@ -113,7 +134,7 @@
         }
         .connection-status {
             position: fixed;
-            top: 16px;
+            top: 80px;
             right: 20px;
             z-index: 1000;
             display: flex;
@@ -192,20 +213,6 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-        .bill-header {
-            text-align: center;
-            margin-bottom: 24px;
-            background: linear-gradient(135deg, #1a2a36, #2c5364);
-            border-radius: 32px;
-            padding: 24px;
-            color: white;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-        .bill-header .shop-name {
-            font-weight: 900;
-            font-size: 1.8rem;
-            letter-spacing: -0.5px;
         }
         .card {
             background: white;
@@ -371,10 +378,18 @@
         }
         @media (max-width: 700px) {
             .nav-cards { grid-template-columns: repeat(2, 1fr); }
+            .top-shop-bar .shop-name { font-size: 1.2rem; }
+            .connection-status { top: 70px; right: 10px; }
         }
     </style>
 </head>
 <body>
+<!-- Top Shop Name Bar -->
+<div class="top-shop-bar">
+    <div class="shop-name">📚 SANA BOOK DEPOT 📚</div>
+    <div class="shop-mobile">Usman Bazar Havelian | +923235124366</div>
+</div>
+
 <div id="startupScreen">
     <div class="startup-content">
         <div class="book-logo"><i class="fas fa-book-open"></i></div>
@@ -399,10 +414,6 @@
 
     <!-- POS PAGE -->
     <div id="posPage" class="page active-page">
-        <div class="bill-header">
-            <div class="shop-name">📚 SANA BOOK DEPOT 📚</div>
-            <div class="shop-mobile">Usman Bazar Havelian | +923235124366</div>
-        </div>
         <div class="card">
             <h2><i class="fas fa-user-circle"></i> Customer Selection</h2>
             <select id="customerSelect"></select>
@@ -473,6 +484,15 @@
     </div>
 </div>
 
+<!-- Scan Barcode Modal for Books Database -->
+<div id="bookScanModal" class="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-camera"></i> Scan Barcode for Book</h3>
+        <div id="bookScanCameraContainer" class="camera-preview"></div>
+        <button id="stopBookScanModalBtn" class="btn-outline" style="width: 100%;"><i class="fas fa-times"></i> Close Camera</button>
+    </div>
+</div>
+
 <!-- Quantity Modal -->
 <div id="quantityModal" class="modal">
     <div class="modal-content">
@@ -488,17 +508,13 @@
     </div>
 </div>
 
-<!-- Add Book Modal with Camera -->
+<!-- Add Book Modal -->
 <div id="addBookModal" class="modal">
     <div class="modal-content">
         <h3><i class="fas fa-book"></i> Add New Book</h3>
         <div class="input-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
             <input type="text" id="newBookBarcode" placeholder="Barcode *" style="flex:1;">
             <button id="scanBookBarcodeBtn" class="btn-outline"><i class="fas fa-camera"></i> Scan</button>
-        </div>
-        <div id="bookCameraContainer" style="display: none; margin: 10px 0;">
-            <div id="bookScannerView" class="camera-preview" style="min-height: 200px;"></div>
-            <button id="stopBookCameraBtn" class="btn-outline" style="width: 100%; margin-top: 8px;">Stop Camera</button>
         </div>
         <input type="text" id="newBookName" placeholder="Book Name *">
         <input type="number" id="newBookPrice" placeholder="Price *" step="any">
@@ -517,7 +533,6 @@
     let discountPercent = 0;
     let allBooks = [];
     let activeScanner = null;
-    let activeScannerType = null;
 
     function showToast(msg, isError = false) {
         const toast = document.getElementById('toastMsg');
@@ -532,7 +547,6 @@
             Quagga.stop();
             activeScanner = null;
         }
-        activeScannerType = null;
     }
 
     window.addEventListener('firebaseReady', async () => {
@@ -578,7 +592,6 @@
             if (err) { showToast("Camera error: " + err, true); closePOSScanner(); return; }
             Quagga.start();
             activeScanner = true;
-            activeScannerType = 'pos';
             Quagga.onDetected(async (data) => {
                 const code = data.codeResult.code;
                 if (code) {
@@ -595,23 +608,10 @@
         stopScanner();
     }
 
-    async function processBarcodeForPOS(barcode) {
-        const book = allBooks.find(b => b.barcode === barcode);
-        if (book) {
-            openQuantityModal(barcode, book.name, book.price);
-        } else {
-            if (confirm("Book not found! Would you like to add it now?")) {
-                document.getElementById('newBookBarcode').value = barcode;
-                document.getElementById('addBookModal').style.display = 'flex';
-            }
-        }
-    }
-
-    // Books Database Scanner
-    async function openBookScanner() {
-        const container = document.getElementById('bookScannerView');
-        if (!container) return;
-        document.getElementById('bookCameraContainer').style.display = 'block';
+    // Books Database Scanner - Professional Popup
+    async function openBookScannerPopup() {
+        document.getElementById('bookScanModal').style.display = 'flex';
+        const container = document.getElementById('bookScanCameraContainer');
         container.innerHTML = '<div id="bookScanView" style="width:100%;"></div>';
         
         stopScanner();
@@ -626,25 +626,36 @@
             locate: true,
             numOfWorkers: 4
         }, (err) => {
-            if (err) { showToast("Camera error: " + err, true); closeBookScanner(); return; }
+            if (err) { showToast("Camera error: " + err, true); closeBookScannerPopup(); return; }
             Quagga.start();
             activeScanner = true;
-            activeScannerType = 'book';
             Quagga.onDetected(async (data) => {
                 const code = data.codeResult.code;
                 if (code) {
                     stopScanner();
+                    closeBookScannerPopup();
                     document.getElementById('newBookBarcode').value = code;
-                    closeBookScanner();
                     showToast("Barcode scanned: " + code);
                 }
             });
         });
     }
 
-    function closeBookScanner() {
-        document.getElementById('bookCameraContainer').style.display = 'none';
+    function closeBookScannerPopup() {
+        document.getElementById('bookScanModal').style.display = 'none';
         stopScanner();
+    }
+
+    async function processBarcodeForPOS(barcode) {
+        const book = allBooks.find(b => b.barcode === barcode);
+        if (book) {
+            openQuantityModal(barcode, book.name, book.price);
+        } else {
+            if (confirm("Book not found! Would you like to add it now?")) {
+                document.getElementById('newBookBarcode').value = barcode;
+                document.getElementById('addBookModal').style.display = 'flex';
+            }
+        }
     }
 
     function openQuantityModal(barcode, name, price) {
@@ -674,7 +685,6 @@
         document.getElementById('quantityModal').style.display = 'none';
     }
 
-    // Autocomplete Search
     function setupAutocomplete() {
         const searchInput = document.getElementById('searchItemInput');
         const resultsDiv = document.getElementById('autocompleteResults');
@@ -777,24 +787,111 @@
     async function generateAndSaveBill() {
         if(!currentCustomer.id) { showToast("Select customer",true); return; }
         if(billItems.length===0) { showToast("No items in cart",true); return; }
+        
         let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
         let discAmt = sub*(discountPercent/100);
         let grand = (sub - discAmt) + currentCustomer.previousBalance;
         let paid = parseFloat(document.getElementById('paidAmount').value)||0;
         let balance = grand - paid;
         let newBalance = currentCustomer.previousBalance + balance;
-        let ledgerData = { customerId: currentCustomer.id, customerName: currentCustomer.name, items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), subtotal:sub, discountPercent, discountAmount:discAmt, previousBalance:currentCustomer.previousBalance, grandTotal:grand, amountPaid:paid, balanceDue:balance, timestamp: new Date().toISOString() };
+        
+        let ledgerData = { 
+            customerId: currentCustomer.id, 
+            customerName: currentCustomer.name, 
+            items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), 
+            subtotal:sub, 
+            discountPercent, 
+            discountAmount:discAmt, 
+            previousBalance:currentCustomer.previousBalance, 
+            grandTotal:grand, 
+            amountPaid:paid, 
+            balanceDue:balance, 
+            timestamp: new Date().toISOString() 
+        };
+        
         await addDoc(collection(window.db, "ledger"), ledgerData);
         await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
         currentCustomer.previousBalance = newBalance;
         document.getElementById('prevBalanceDisplay').innerText = newBalance.toFixed(2);
         
-        const div = document.createElement('div');
-        div.style.padding = '20px';
-        div.innerHTML = `<div style="text-align:center"><h2>SANA BOOK DEPOT</h2><p>Usman Bazar Havelian | +923235124366</p></div><hr/><p><strong>Customer:</strong> ${currentCustomer.name}</p><p>${new Date().toLocaleString()}</p><table border="1" cellpadding="5" style="width:100%"><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr>${billItems.map(i=>`<tr><td>${i.name}</td><td>${i.quantity}</td><td>${i.price}</td><td>${(i.price*i.quantity).toFixed(2)}</td></tr>`).join('')}</table><p><strong>Grand Total: ₹${grand.toFixed(2)}</strong></p><p>Thank you! Visit again.</p>`;
-        html2pdf().from(div).set({ filename: `Bill_${currentCustomer.name}_${new Date().toISOString().slice(0,19)}.pdf` }).save();
-        showToast("Bill saved & PDF generated");
-        billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent=0; document.getElementById('discountPercent').value=0; computeTotals(); loadLedger();
+        // Professional PDF Bill with complete details
+        const billDiv = document.createElement('div');
+        billDiv.style.padding = '30px';
+        billDiv.style.fontFamily = 'Inter, sans-serif';
+        billDiv.style.maxWidth = '800px';
+        billDiv.style.margin = '0 auto';
+        billDiv.style.backgroundColor = 'white';
+        
+        billDiv.innerHTML = `
+            <div style="text-align: center; border-bottom: 3px solid #2c5364; padding-bottom: 20px; margin-bottom: 20px;">
+                <h1 style="color: #1a2a36; font-size: 28px; font-weight: 900; margin-bottom: 5px;">📚 SANA BOOK DEPOT 📚</h1>
+                <p style="color: #2c5364; font-weight: 600; font-size: 14px;">Usman Bazar Havelian</p>
+                <p style="color: #2c5364; font-weight: 600; font-size: 14px;">📞 +923235124366</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <p><strong>Bill No:</strong> ${new Date().getTime().toString().slice(-8)}</p>
+                <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+                <p><strong>Customer Name:</strong> ${currentCustomer.name}</p>
+                <p><strong>Previous Balance:</strong> ₹${currentCustomer.previousBalance.toFixed(2)}</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background-color: #2c5364; color: white;">
+                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Item</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Qty</th>
+                        <th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Price (₹)</th>
+                        <th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${billItems.map(item => `
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${item.quantity}</td>
+                            <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${item.price.toFixed(2)}</td>
+                            <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${(item.price * item.quantity).toFixed(2)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            
+            <div style="text-align: right; margin-top: 20px;">
+                <p><strong>Subtotal:</strong> ₹${sub.toFixed(2)}</p>
+                <p><strong>Discount (${discountPercent}%):</strong> ₹${discAmt.toFixed(2)}</p>
+                <p><strong>Total After Discount:</strong> ₹${(sub - discAmt).toFixed(2)}</p>
+                <p><strong>Previous Balance:</strong> ₹${currentCustomer.previousBalance.toFixed(2)}</p>
+                <p style="font-size: 18px; font-weight: 800; color: #2c5364;"><strong>Grand Total:</strong> ₹${grand.toFixed(2)}</p>
+                <p><strong>Amount Paid:</strong> ₹${paid.toFixed(2)}</p>
+                <p><strong>Balance Due:</strong> ₹${balance.toFixed(2)}</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ccc;">
+                <p style="font-size: 14px; color: #666;">Thank you for shopping with us!</p>
+                <p style="font-size: 12px; color: #999;">This is a computer generated bill - no signature required</p>
+            </div>
+        `;
+        
+        html2pdf().from(billDiv).set({
+            margin: 0.5,
+            filename: `Bill_${currentCustomer.name}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, letterRendering: true },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        }).save();
+        
+        showToast("Bill saved & PDF generated successfully!");
+        
+        // Reset bill
+        billItems = [];
+        renderBillTable();
+        computeTotals();
+        document.getElementById('paidAmount').value = 0;
+        discountPercent = 0;
+        document.getElementById('discountPercent').value = 0;
+        computeTotals();
+        loadLedger();
     }
 
     async function addNewCustomer() {
@@ -813,8 +910,9 @@
         showToast("✅ Record added successfully!");
         document.getElementById('addBookModal').style.display = 'none';
         await loadAllBooks(); await loadBooksList();
-        document.getElementById('newBookBarcode').value = ''; document.getElementById('newBookName').value = ''; document.getElementById('newBookPrice').value = '';
-        closeBookScanner();
+        document.getElementById('newBookBarcode').value = ''; 
+        document.getElementById('newBookName').value = ''; 
+        document.getElementById('newBookPrice').value = '';
     }
 
     function attachEvents() {
@@ -833,9 +931,9 @@
         document.getElementById('openScanModalBtn').onclick = openPOSScanner;
         document.getElementById('stopScanModalBtn').onclick = closePOSScanner;
         
-        // Book scanner events
-        document.getElementById('scanBookBarcodeBtn').onclick = openBookScanner;
-        document.getElementById('stopBookCameraBtn').onclick = closeBookScanner;
+        // Books Database Scanner events - Professional Popup
+        document.getElementById('scanBookBarcodeBtn').onclick = openBookScannerPopup;
+        document.getElementById('stopBookScanModalBtn').onclick = closeBookScannerPopup;
         
         document.getElementById('confirmQtyBtn').onclick = addToBillWithQuantity;
         document.getElementById('cancelQtyBtn').onclick = () => document.getElementById('quantityModal').style.display = 'none';
@@ -843,15 +941,15 @@
         document.getElementById('addCustomerPageBtn').onclick = addNewCustomer;
         document.getElementById('generatePdfBtn').onclick = generateAndSaveBill;
         document.getElementById('refreshLedgerBtn').onclick = loadLedger;
-        document.getElementById('openAddBookModalBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'flex'; closeBookScanner(); };
+        document.getElementById('openAddBookModalBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'flex'; };
         document.getElementById('saveBookBtn').onclick = saveNewBook;
-        document.getElementById('cancelAddBookBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'none'; closeBookScanner(); };
+        document.getElementById('cancelAddBookBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'none'; };
         document.getElementById('discountPercent').addEventListener('input', (e) => { discountPercent = parseFloat(e.target.value)||0; computeTotals(); });
         document.getElementById('paidAmount').addEventListener('input', computeTotals);
         
         document.getElementById('bluetoothPrintBtn').onclick = async () => { 
             if(billItems.length===0){showToast("No bill",true);return;} 
-            let text = `SANA BOOK DEPOT\n${currentCustomer.name || 'Guest'}\n${billItems.map(i=>`${i.name} x${i.quantity}=${(i.price*i.quantity).toFixed(2)}`).join('\n')}\nGrand: ₹${document.getElementById('grandTotalSpan').innerText}\nThank you!`; 
+            let text = `SANA BOOK DEPOT\nUsman Bazar Havelian\n+923235124366\nCustomer: ${currentCustomer.name || 'Guest'}\n${billItems.map(i=>`${i.name} x${i.quantity}=${(i.price*i.quantity).toFixed(2)}`).join('\n')}\nGrand Total: ₹${document.getElementById('grandTotalSpan').innerText}\nThank you!`; 
             try{ 
                 const device = await navigator.bluetooth.requestDevice({filters:[{services:['000018f0-0000-1000-8000-00805f9b34fb']}]}); 
                 const server = await device.gatt.connect(); 
