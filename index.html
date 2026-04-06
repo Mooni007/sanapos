@@ -383,6 +383,16 @@
             background: #eef2ff;
             transform: translateX(4px);
         }
+        /* PDF Container Styles */
+        .pdf-container {
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 800px;
+            background: white;
+            padding: 30px;
+            font-family: 'Inter', sans-serif;
+        }
         @media (max-width: 700px) {
             .nav-cards { grid-template-columns: repeat(2, 1fr); }
             .top-shop-bar .shop-name { font-size: 1.2rem; }
@@ -420,7 +430,6 @@
         <div class="nav-card" data-page="ledgerPage"><i class="fas fa-receipt"></i><h3>Bills Ledger</h3></div>
     </div>
 
-    <!-- POS PAGE -->
     <div id="posPage" class="page active-page">
         <div class="card">
             <h2><i class="fas fa-user-circle"></i> Customer Selection</h2>
@@ -463,7 +472,6 @@
         </div>
     </div>
 
-    <!-- BOOKS PAGE -->
     <div id="booksPage" class="page">
         <div class="card">
             <h2><i class="fas fa-database"></i> Books Inventory</h2>
@@ -472,18 +480,15 @@
         </div>
     </div>
 
-    <!-- CUSTOMERS PAGE -->
     <div id="customersPage" class="page">
         <div class="card"><h2><i class="fas fa-address-card"></i> All Customers</h2><button id="addCustomerPageBtn"><i class="fas fa-user-plus"></i> Add Customer</button><div id="customersList" style="margin-top:16px;"></div></div>
     </div>
 
-    <!-- LEDGER PAGE -->
     <div id="ledgerPage" class="page">
         <div class="card"><h2><i class="fas fa-history"></i> Bill Ledger</h2><button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Refresh</button><div id="ledgerList" style="margin-top:16px;"></div></div>
     </div>
 </div>
 
-<!-- Scan Barcode Modal for POS -->
 <div id="scanModal" class="modal">
     <div class="modal-content">
         <h3><i class="fas fa-camera"></i> Scan Barcode</h3>
@@ -492,7 +497,6 @@
     </div>
 </div>
 
-<!-- Quantity Modal -->
 <div id="quantityModal" class="modal">
     <div class="modal-content">
         <h3><i class="fas fa-cart-plus"></i> Add to Cart</h3>
@@ -507,7 +511,6 @@
     </div>
 </div>
 
-<!-- Add Book Modal with Small Camera Preview -->
 <div id="addBookModal" class="modal">
     <div class="modal-content">
         <h3><i class="fas fa-book"></i> Add New Record</h3>
@@ -578,86 +581,51 @@
         document.getElementById('scanModal').style.display = 'flex';
         const container = document.getElementById('scanCameraContainer');
         container.innerHTML = '<div id="posScanView" style="width:100%;"></div>';
-        
         stopScanner();
         Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector("#posScanView"),
-                constraints: { facingMode: "environment" }
-            },
+            inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#posScanView"), constraints: { facingMode: "environment" } },
             decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader"] },
-            locate: true,
-            numOfWorkers: 4
+            locate: true, numOfWorkers: 4
         }, (err) => {
             if (err) { showToast("Camera error: " + err, true); closePOSScanner(); return; }
             Quagga.start();
             activeScanner = true;
             Quagga.onDetected(async (data) => {
                 const code = data.codeResult.code;
-                if (code) {
-                    stopScanner();
-                    closePOSScanner();
-                    await processBarcodeForPOS(code);
-                }
+                if (code) { stopScanner(); closePOSScanner(); await processBarcodeForPOS(code); }
             });
         });
     }
 
-    function closePOSScanner() {
-        document.getElementById('scanModal').style.display = 'none';
-        stopScanner();
-    }
+    function closePOSScanner() { document.getElementById('scanModal').style.display = 'none'; stopScanner(); }
 
     async function openBookScanner() {
         const container = document.getElementById('bookScannerView');
         if (!container) return;
         document.getElementById('bookCameraContainer').style.display = 'block';
         container.innerHTML = '<div id="bookScanView" style="width:100%;"></div>';
-        
         stopScanner();
         Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector("#bookScanView"),
-                constraints: { facingMode: "environment" }
-            },
+            inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#bookScanView"), constraints: { facingMode: "environment" } },
             decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader"] },
-            locate: true,
-            numOfWorkers: 4
+            locate: true, numOfWorkers: 4
         }, (err) => {
             if (err) { showToast("Camera error: " + err, true); closeBookScanner(); return; }
             Quagga.start();
             activeScanner = true;
             Quagga.onDetected(async (data) => {
                 const code = data.codeResult.code;
-                if (code) {
-                    stopScanner();
-                    document.getElementById('newBookBarcode').value = code;
-                    closeBookScanner();
-                    showToast("✅ Barcode scanned: " + code);
-                }
+                if (code) { stopScanner(); document.getElementById('newBookBarcode').value = code; closeBookScanner(); showToast("✅ Barcode scanned: " + code); }
             });
         });
     }
 
-    function closeBookScanner() {
-        document.getElementById('bookCameraContainer').style.display = 'none';
-        stopScanner();
-    }
+    function closeBookScanner() { document.getElementById('bookCameraContainer').style.display = 'none'; stopScanner(); }
 
     async function processBarcodeForPOS(barcode) {
         const book = allBooks.find(b => b.barcode === barcode);
-        if (book) {
-            openQuantityModal(barcode, book.name, book.price);
-        } else {
-            if (confirm("Book not found! Would you like to add it now?")) {
-                document.getElementById('newBookBarcode').value = barcode;
-                document.getElementById('addBookModal').style.display = 'flex';
-            }
-        }
+        if (book) { openQuantityModal(barcode, book.name, book.price); }
+        else { if (confirm("Book not found! Would you like to add it now?")) { document.getElementById('newBookBarcode').value = barcode; document.getElementById('addBookModal').style.display = 'flex'; } }
     }
 
     function openQuantityModal(barcode, name, price) {
@@ -675,14 +643,9 @@
         if (isNaN(qty) || qty < 1) { showToast("Invalid quantity", true); return; }
         const { barcode, name, price } = window.pendingBook;
         const existing = billItems.find(i => i.barcode === barcode);
-        if (existing) {
-            existing.quantity = qty;
-            existing.price = price;
-        } else {
-            billItems.push({ barcode, name, price, quantity: qty });
-        }
-        renderBillTable();
-        computeTotals();
+        if (existing) { existing.quantity = qty; existing.price = price; }
+        else { billItems.push({ barcode, name, price, quantity: qty }); }
+        renderBillTable(); computeTotals();
         showToast(`${name} x${qty} added to cart`);
         document.getElementById('quantityModal').style.display = 'none';
     }
@@ -699,11 +662,8 @@
                 resultsDiv.style.display = 'block';
                 document.querySelectorAll('.autocomplete-item').forEach(el => {
                     el.addEventListener('click', () => {
-                        const barcode = el.dataset.barcode;
-                        const name = el.dataset.name;
-                        const price = parseFloat(el.dataset.price);
-                        searchInput.value = '';
-                        resultsDiv.style.display = 'none';
+                        const barcode = el.dataset.barcode, name = el.dataset.name, price = parseFloat(el.dataset.price);
+                        searchInput.value = ''; resultsDiv.style.display = 'none';
                         openQuantityModal(barcode, name, price);
                     });
                 });
@@ -734,10 +694,7 @@
         const snapshot = await getDocs(collection(window.db, "books"));
         const container = document.getElementById('booksList');
         if(container) container.innerHTML = '';
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            container.innerHTML += `<div class="list-item"><i class="fas fa-book"></i> <strong>${data.name}</strong><br>Barcode: ${docSnap.id}<br>Price: ${data.price} PKR</div>`;
-        });
+        snapshot.forEach(docSnap => { const data = docSnap.data(); container.innerHTML += `<div class="list-item"><i class="fas fa-book"></i> <strong>${data.name}</strong><br>Barcode: ${docSnap.id}<br>Price: ${data.price} PKR</div>`; });
     }
 
     async function loadLedger() {
@@ -745,10 +702,7 @@
         const snapshot = await getDocs(q);
         const container = document.getElementById('ledgerList');
         if(container) container.innerHTML = '';
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            container.innerHTML += `<div class="list-item" onclick="alert('Items: ${data.items?.map(i=>`${i.name} x${i.quantity}`).join(', ')}\\nGrand Total: ${data.grandTotal} PKR')"><i class="fas fa-receipt"></i> <strong>${data.customerName}</strong><br>${new Date(data.timestamp).toLocaleString()}<br>Total: ${data.grandTotal} PKR</div>`;
-        });
+        snapshot.forEach(docSnap => { const data = docSnap.data(); container.innerHTML += `<div class="list-item" onclick="alert('Items: ${data.items?.map(i=>`${i.name} x${i.quantity}`).join(', ')}\\nGrand Total: ${data.grandTotal} PKR')"><i class="fas fa-receipt"></i> <strong>${data.customerName}</strong><br>${new Date(data.timestamp).toLocaleString()}<br>Total: ${data.grandTotal} PKR</div>`; });
     }
 
     function renderBillTable() {
@@ -804,17 +758,10 @@
             let newBalance = currentCustomer.previousBalance + balance;
             
             const ledgerData = { 
-                customerId: currentCustomer.id, 
-                customerName: currentCustomer.name, 
+                customerId: currentCustomer.id, customerName: currentCustomer.name, 
                 items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), 
-                subtotal:sub, 
-                discountPercent, 
-                discountAmount:discAmt, 
-                previousBalance:currentCustomer.previousBalance, 
-                grandTotal:grand, 
-                amountPaid:paid, 
-                balanceDue:balance, 
-                timestamp: new Date().toISOString() 
+                subtotal:sub, discountPercent, discountAmount:discAmt, previousBalance:currentCustomer.previousBalance, 
+                grandTotal:grand, amountPaid:paid, balanceDue:balance, timestamp: new Date().toISOString() 
             };
             
             await addDoc(collection(window.db, "ledger"), ledgerData);
@@ -822,19 +769,20 @@
             currentCustomer.previousBalance = newBalance;
             document.getElementById('prevBalanceDisplay').innerText = newBalance.toFixed(2) + " PKR";
             
-            // Create PDF using html2pdf with a temporary element
-            const tempDiv = document.createElement('div');
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '-9999px';
-            tempDiv.style.top = '-9999px';
-            tempDiv.style.width = '800px';
-            tempDiv.style.backgroundColor = 'white';
-            tempDiv.style.padding = '25px';
-            tempDiv.style.fontFamily = 'Inter, sans-serif';
+            // Create PDF container
+            const pdfDiv = document.createElement('div');
+            pdfDiv.className = 'pdf-container';
+            pdfDiv.style.position = 'fixed';
+            pdfDiv.style.left = '-9999px';
+            pdfDiv.style.top = '0';
+            pdfDiv.style.width = '800px';
+            pdfDiv.style.backgroundColor = 'white';
+            pdfDiv.style.padding = '30px';
+            pdfDiv.style.fontFamily = 'Inter, sans-serif';
             
-            tempDiv.innerHTML = `
-                <div style="text-align: center; border-bottom: 3px solid #2c5364; padding-bottom: 15px; margin-bottom: 20px;">
-                    <h1 style="color: #1a2a36; font-size: 26px; font-weight: 900; margin-bottom: 5px;">📚 SANA BOOK DEPOT 📚</h1>
+            pdfDiv.innerHTML = `
+                <div style="text-align: center; border-bottom: 3px solid #2c5364; padding-bottom: 20px; margin-bottom: 20px;">
+                    <h1 style="color: #1a2a36; font-size: 28px; font-weight: 900; margin-bottom: 5px;">📚 SANA BOOK DEPOT 📚</h1>
                     <p style="color: #2c5364; font-weight: 600;">Usman Bazar Havelian</p>
                     <p style="color: #2c5364; font-weight: 600;">📞 +923235124366</p>
                 </div>
@@ -842,26 +790,26 @@
                     <div><strong>Bill No:</strong> ${new Date().getTime().toString().slice(-8)}</div>
                     <div><strong>Date:</strong> ${new Date().toLocaleString()}</div>
                 </div>
-                <div style="margin-bottom: 20px; padding: 10px; background: #f8fafc; border-radius: 12px;">
-                    <p><strong>Customer:</strong> ${currentCustomer.name}</p>
+                <div style="margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 12px;">
+                    <p><strong>Customer Name:</strong> ${currentCustomer.name}</p>
                     <p><strong>Previous Balance:</strong> ${currentCustomer.previousBalance.toFixed(2)} PKR</p>
                 </div>
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                     <thead>
                         <tr style="background-color: #2c5364; color: white;">
-                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Item</th>
-                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Qty</th>
-                            <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Price (PKR)</th>
-                            <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Amount (PKR)</th>
-                        </tr>
+                            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Item Name</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Quantity</th>
+                            <th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Price (PKR)</th>
+                            <th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Amount (PKR)</th>
+                         </tr>
                     </thead>
                     <tbody>
                         ${billItems.map(item => `
                             <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${item.name}</td>
-                                <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${item.quantity}</td>
-                                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${item.price.toFixed(2)}</td>
-                                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${(item.price * item.quantity).toFixed(2)}</td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
+                                <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${item.quantity}</td>
+                                <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${item.price.toFixed(2)}</td>
+                                <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${(item.price * item.quantity).toFixed(2)}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -871,20 +819,21 @@
                     <p><strong>Discount (${discountPercent}%):</strong> ${discAmt.toFixed(2)} PKR</p>
                     <p><strong>Total After Discount:</strong> ${(sub - discAmt).toFixed(2)} PKR</p>
                     <p><strong>Previous Balance:</strong> ${currentCustomer.previousBalance.toFixed(2)} PKR</p>
-                    <p style="font-size: 18px; font-weight: 800; color: #2c5364; margin-top: 10px;"><strong>Grand Total:</strong> ${grand.toFixed(2)} PKR</p>
+                    <p style="font-size: 20px; font-weight: 800; color: #2c5364; margin-top: 10px;"><strong>Grand Total:</strong> ${grand.toFixed(2)} PKR</p>
                     <p><strong>Amount Paid:</strong> ${paid.toFixed(2)} PKR</p>
                     <p><strong>Balance Due:</strong> ${balance.toFixed(2)} PKR</p>
                 </div>
-                <div style="text-align: center; margin-top: 30px; padding-top: 15px; border-top: 2px dashed #ccc;">
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ccc;">
                     <p style="font-size: 14px;">Thank you for shopping with us!</p>
                     <p style="font-size: 12px; color: #999;">This is a computer generated bill</p>
                 </div>
             `;
             
-            document.body.appendChild(tempDiv);
+            document.body.appendChild(pdfDiv);
             
             const filename = `Bill_${currentCustomer.name}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`;
             
+            const element = pdfDiv;
             const opt = {
                 margin: [0.5, 0.5, 0.5, 0.5],
                 filename: filename,
@@ -893,13 +842,12 @@
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
             
-            await html2pdf().set(opt).from(tempDiv).save();
+            await html2pdf().set(opt).from(element).save();
             
-            document.body.removeChild(tempDiv);
+            document.body.removeChild(pdfDiv);
             
-            showToast("✅ Bill saved to Firebase & PDF downloaded!");
+            showToast("✅ Bill saved to Firebase & PDF downloaded successfully!");
             
-            // Reset bill after saving
             billItems = [];
             renderBillTable();
             computeTotals();
@@ -910,7 +858,7 @@
             loadLedger();
             
         } catch (error) {
-            console.error("Error:", error);
+            console.error("PDF Error:", error);
             showToast("❌ Error generating PDF. Please try again.", true);
         } finally {
             btn.innerHTML = originalText;
@@ -934,9 +882,7 @@
         showToast("✅ Record added successfully!");
         document.getElementById('addBookModal').style.display = 'none';
         await loadAllBooks(); await loadBooksList();
-        document.getElementById('newBookBarcode').value = ''; 
-        document.getElementById('newBookName').value = ''; 
-        document.getElementById('newBookPrice').value = '';
+        document.getElementById('newBookBarcode').value = ''; document.getElementById('newBookName').value = ''; document.getElementById('newBookPrice').value = '';
         closeBookScanner();
     }
 
