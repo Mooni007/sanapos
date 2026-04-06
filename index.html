@@ -966,11 +966,27 @@
         try {
             let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
             let discAmt = sub*(discountPercent/100);
-            let grand = (sub - discAmt) + currentCustomer.previousBalance;
+            let currentPurchaseAfterDisc = sub - discAmt;
             let paid = parseFloat(document.getElementById('paidAmount').value)||0;
-            let balance = grand - paid;
-            let newBalance = currentCustomer.previousBalance + balance;
-            const ledgerData = { customerId: currentCustomer.id, customerName: currentCustomer.name, items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), subtotal:sub, discountPercent, discountAmount:discAmt, previousBalance:currentCustomer.previousBalance, grandTotal:grand, amountPaid:paid, balanceDue:balance, timestamp: new Date().toISOString() };
+            // Correct new balance calculation:
+            let newBalance = currentCustomer.previousBalance + currentPurchaseAfterDisc - paid;
+            if (newBalance < 0) newBalance = 0;
+            let grand = currentCustomer.previousBalance + currentPurchaseAfterDisc;
+            let balanceDue = grand - paid;
+            
+            const ledgerData = { 
+                customerId: currentCustomer.id, 
+                customerName: currentCustomer.name, 
+                items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), 
+                subtotal:sub, 
+                discountPercent, 
+                discountAmount:discAmt, 
+                previousBalance:currentCustomer.previousBalance, 
+                grandTotal:grand, 
+                amountPaid:paid, 
+                balanceDue:balanceDue, 
+                timestamp: new Date().toISOString() 
+            };
             await addDoc(collection(window.db, "ledger"), ledgerData);
             await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
             currentCustomer.previousBalance = newBalance;
@@ -980,7 +996,7 @@
             printWindow.document.write(billHTML);
             printWindow.document.close();
             showToast("✅ Bill saved to Firebase. Print preview opened. Use 'Save as PDF' to download.");
-            billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent = 0; document.getElementById('discountPercent').value = 0; computeTotals(); loadLedger();
+            billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent = 0; document.getElementById('discountPercent').value = 0; computeTotals(); loadLedger(); loadCustomers();
         } catch (error) { console.error("Bill save error:", error); showToast("❌ Error saving bill. Please try again.", true); } 
         finally { btn.innerHTML = originalText; btn.disabled = false; }
     }
