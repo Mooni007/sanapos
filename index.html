@@ -586,6 +586,8 @@
     let allBooks = [];
     let activeScanner = null;
     let allCustomers = [];
+    let lastScannedCode = null;
+    let scanCooldown = false;
 
     function showToast(msg, isError = false) {
         const toast = document.getElementById('toastMsg');
@@ -600,6 +602,11 @@
             Quagga.stop();
             activeScanner = null;
         }
+    }
+
+    // Helper to validate barcode (must be non-empty and contain only digits or alphanumeric, length > 3)
+    function isValidBarcode(code) {
+        return code && code.length >= 4 && /^[a-zA-Z0-9]+$/.test(code);
     }
 
     window.addEventListener('firebaseReady', async () => {
@@ -713,55 +720,122 @@
         }
     }
 
+    // Enhanced POS scanner with validation and cooldown
     async function openPOSScanner() {
         document.getElementById('scanModal').style.display = 'flex';
         const container = document.getElementById('scanCameraContainer');
         container.innerHTML = '<div id="posScanView" style="width:100%;"></div>';
         stopScanner();
+        lastScannedCode = null;
+        scanCooldown = false;
         Quagga.init({
-            inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#posScanView"), constraints: { facingMode: "environment" } },
-            decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader"] },
-            locate: true, numOfWorkers: 4
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector("#posScanView"),
+                constraints: { facingMode: "environment" }
+            },
+            decoder: {
+                readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader"],
+                multiple: false
+            },
+            locate: true,
+            numOfWorkers: 4,
+            frequency: 5
         }, (err) => {
             if (err) { showToast("Camera error: " + err, true); closePOSScanner(); return; }
             Quagga.start();
             activeScanner = true;
             Quagga.onDetected(async (data) => {
+                if (scanCooldown) return;
                 const code = data.codeResult.code;
-                if (code) { stopScanner(); closePOSScanner(); await processBarcodeForPOS(code); }
+                // Validate barcode format
+                if (!isValidBarcode(code)) {
+                    showToast("❌ Barcode not clear or invalid. Please try again.", true);
+                    scanCooldown = true;
+                    setTimeout(() => { scanCooldown = false; }, 1500);
+                    return;
+                }
+                // Prevent duplicate rapid scans of same code
+                if (lastScannedCode === code) return;
+                lastScannedCode = code;
+                scanCooldown = true;
+                stopScanner();
+                closePOSScanner();
+                await processBarcodeForPOS(code);
+                setTimeout(() => { scanCooldown = false; lastScannedCode = null; }, 1000);
             });
         });
     }
 
-    function closePOSScanner() { document.getElementById('scanModal').style.display = 'none'; stopScanner(); }
+    function closePOSScanner() {
+        document.getElementById('scanModal').style.display = 'none';
+        stopScanner();
+    }
 
+    // Enhanced book scanner (for adding new books) with same validation
     async function openBookScanner() {
         const container = document.getElementById('bookScannerView');
         if (!container) return;
         document.getElementById('bookCameraContainer').style.display = 'block';
         container.innerHTML = '<div id="bookScanView" style="width:100%;"></div>';
         stopScanner();
+        lastScannedCode = null;
+        scanCooldown = false;
         Quagga.init({
-            inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#bookScanView"), constraints: { facingMode: "environment" } },
-            decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader"] },
-            locate: true, numOfWorkers: 4
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector("#bookScanView"),
+                constraints: { facingMode: "environment" }
+            },
+            decoder: {
+                readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader"],
+                multiple: false
+            },
+            locate: true,
+            numOfWorkers: 4,
+            frequency: 5
         }, (err) => {
             if (err) { showToast("Camera error: " + err, true); closeBookScanner(); return; }
             Quagga.start();
             activeScanner = true;
             Quagga.onDetected(async (data) => {
+                if (scanCooldown) return;
                 const code = data.codeResult.code;
-                if (code) { stopScanner(); document.getElementById('newBookBarcode').value = code; closeBookScanner(); showToast("✅ Barcode scanned: " + code); }
+                if (!isValidBarcode(code)) {
+                    showToast("❌ Barcode not clear or invalid. Please try again.", true);
+                    scanCooldown = true;
+                    setTimeout(() => { scanCooldown = false; }, 1500);
+                    return;
+                }
+                if (lastScannedCode === code) return;
+                lastScannedCode = code;
+                scanCooldown = true;
+                stopScanner();
+                document.getElementById('newBookBarcode').value = code;
+                closeBookScanner();
+                showToast("✅ Barcode scanned: " + code);
+                setTimeout(() => { scanCooldown = false; lastScannedCode = null; }, 1000);
             });
         });
     }
 
-    function closeBookScanner() { document.getElementById('bookCameraContainer').style.display = 'none'; stopScanner(); }
+    function closeBookScanner() {
+        document.getElementById('bookCameraContainer').style.display = 'none';
+        stopScanner();
+    }
 
     async function processBarcodeForPOS(barcode) {
         const book = allBooks.find(b => b.barcode === barcode);
-        if (book) { openQuantityModal(barcode, book.name, book.price); }
-        else { if (confirm("Book not found! Would you like to add it now?")) { document.getElementById('newBookBarcode').value = barcode; document.getElementById('addBookModal').style.display = 'flex'; } }
+        if (book) {
+            openQuantityModal(barcode, book.name, book.price);
+        } else {
+            if (confirm("Book not found! Would you like to add it now?")) {
+                document.getElementById('newBookBarcode').value = barcode;
+                document.getElementById('addBookModal').style.display = 'flex';
+            }
+        }
     }
 
     function openQuantityModal(barcode, name, price) {
@@ -939,7 +1013,7 @@
             <div class="header"><div class="shop-name">📚 SANA BOOK DEPOT 📚</div><div class="shop-details">Usman Bazar Havelian | +923235124366</div></div>
             <div class="info-row"><div><strong>Bill No:</strong> ${billNo}</div><div><strong>Date:</strong> ${dateTime}</div></div>
             <div class="customer-box"><p><strong>Customer:</strong> ${currentCustomer.name}</p><p><strong>Previous Balance:</strong> ${currentCustomer.previousBalance.toFixed(2)} PKR</p></div>
-            <tr><thead><tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th></tr></thead><tbody>${itemsRows}</tbody></table>
+            <table><thead><tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th></tr></thead><tbody>${itemsRows}</tbody></table>
             <div class="totals">
                 <p><strong>Subtotal:</strong> ${sub.toFixed(2)} PKR</p>
                 <p><strong>Discount (${discountPercent}%):</strong> ${discAmt.toFixed(2)} PKR</p>
@@ -968,7 +1042,6 @@
             let discAmt = sub*(discountPercent/100);
             let currentPurchaseAfterDisc = sub - discAmt;
             let paid = parseFloat(document.getElementById('paidAmount').value)||0;
-            // Correct balance update: new balance = previous balance + current purchase - amount paid
             let newBalance = currentCustomer.previousBalance + currentPurchaseAfterDisc - paid;
             if (newBalance < 0) newBalance = 0;
             let grand = currentCustomer.previousBalance + currentPurchaseAfterDisc;
@@ -998,7 +1071,7 @@
             showToast("✅ Bill saved to Firebase. Print preview opened. Use 'Save as PDF' to download.");
             billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent = 0; document.getElementById('discountPercent').value = 0; computeTotals(); 
             await loadLedger(); 
-            await loadCustomers(); // Refresh customer list to show updated balance
+            await loadCustomers();
         } catch (error) { console.error("Bill save error:", error); showToast("❌ Error saving bill. Please try again.", true); } 
         finally { btn.innerHTML = originalText; btn.disabled = false; }
     }
