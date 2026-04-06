@@ -484,7 +484,7 @@
         </div>
     </div>
 
-    <!-- CUSTOMERS PAGE (with search and payment) -->
+    <!-- CUSTOMERS PAGE -->
     <div id="customersPage" class="page">
         <div class="card">
             <h2><i class="fas fa-address-card"></i> Customer Management</h2>
@@ -585,7 +585,7 @@
     let discountPercent = 0;
     let allBooks = [];
     let activeScanner = null;
-    let allCustomers = []; // store for filtering
+    let allCustomers = [];
 
     function showToast(msg, isError = false) {
         const toast = document.getElementById('toastMsg');
@@ -624,14 +624,12 @@
         snapshot.forEach(docSnap => { allBooks.push({ barcode: docSnap.id, ...docSnap.data() }); });
     }
 
-    // Load customers and store in allCustomers for filtering
     async function loadCustomers() {
         const snapshot = await getDocs(collection(window.db, "customers"));
         allCustomers = [];
         snapshot.forEach(docSnap => {
             allCustomers.push({ id: docSnap.id, ...docSnap.data() });
         });
-        // Update customer select dropdown for POS
         const select = document.getElementById('customerSelect');
         select.innerHTML = '<option value="">-- Select Customer --</option>';
         allCustomers.forEach(cust => {
@@ -639,10 +637,19 @@
         });
         select.onchange = async (e) => {
             const id = e.target.value;
-            if(id){ const snap = await getDoc(doc(window.db, "customers", id)); if(snap.exists()){ currentCustomer = { id, ...snap.data() }; document.getElementById('prevBalanceDisplay').innerText = currentCustomer.previousBalance.toFixed(2) + " PKR"; computeTotals(); } }
-            else { currentCustomer = { id: null, name: '', previousBalance: 0 }; document.getElementById('prevBalanceDisplay').innerText = '0.00 PKR'; computeTotals(); }
+            if(id){
+                const snap = await getDoc(doc(window.db, "customers", id));
+                if(snap.exists()){
+                    currentCustomer = { id, ...snap.data() };
+                    document.getElementById('prevBalanceDisplay').innerText = currentCustomer.previousBalance.toFixed(2) + " PKR";
+                    computeTotals();
+                }
+            } else {
+                currentCustomer = { id: null, name: '', previousBalance: 0 };
+                document.getElementById('prevBalanceDisplay').innerText = '0.00 PKR';
+                computeTotals();
+            }
         };
-        // Update the Customers page list with search filter
         renderCustomerList();
     }
 
@@ -664,7 +671,6 @@
             `;
             container.appendChild(div);
         });
-        // Attach payment button events
         document.querySelectorAll('.payment-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -699,8 +705,7 @@
         await updateDoc(doc(window.db, "customers", custId), { previousBalance: newBalance });
         showToast(`✅ Received ${amount} PKR from ${custName}. New balance: ${newBalance.toFixed(2)} PKR`);
         document.getElementById('paymentModal').style.display = 'none';
-        await loadCustomers(); // refresh all customer lists
-        // Also update currentCustomer if it's the same
+        await loadCustomers();
         if (currentCustomer.id === custId) {
             currentCustomer.previousBalance = newBalance;
             document.getElementById('prevBalanceDisplay').innerText = newBalance.toFixed(2) + " PKR";
@@ -840,14 +845,7 @@
         const formattedDate = dateObj.toLocaleString();
         let itemsRows = '';
         bill.items.forEach(item => {
-            itemsRows += `
-                <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${item.name}</td>
-                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${item.quantity}</td>
-                    <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${item.price.toFixed(2)}</td>
-                    <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${(item.price * item.quantity).toFixed(2)}</td>
-                </tr>
-            `;
+            itemsRows += `<tr><td style="padding:8px;border:1px solid #ddd;">${item.name}</td><td style="padding:8px;text-align:center;border:1px solid #ddd;">${item.quantity}</td><td style="padding:8px;text-align:right;border:1px solid #ddd;">${item.price.toFixed(2)}</td><td style="padding:8px;text-align:right;border:1px solid #ddd;">${(item.price * item.quantity).toFixed(2)}</td></tr>`;
         });
         const billHTML = `<!DOCTYPE html>
         <html>
@@ -932,7 +930,9 @@
         return `<!DOCTYPE html>
         <html>
         <head><meta charset="UTF-8"><title>Bill - Sana Book Depot</title>
-        <style>*{margin:0;padding:0;box-sizing:border-box;} body{font-family:'Inter',Arial,sans-serif;padding:20px;background:white;} .bill-container{max-width:800px;margin:0 auto;} .header{text-align:center;border-bottom:3px solid #2c5364;padding-bottom:15px;margin-bottom:20px;} .shop-name{font-size:24px;font-weight:900;color:#1a2a36;} .shop-details{color:#2c5364;font-weight:600;} .info-row{display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;} .customer-box{background:#f8fafc;padding:12px;border-radius:12px;margin-bottom:20px;} table{width:100%;border-collapse:collapse;margin-bottom:20px;} th{background-color:#2c5364;color:white;padding:10px;text-align:left;border:1px solid #ddd;} td{padding:8px;border:1px solid #ddd;} .totals{text-align:right;margin-top:15px;} .grand-total{font-size:18px;font-weight:800;color:#2c5364;margin-top:10px;} .footer{text-align:center;margin-top:30px;padding-top:15px;border-top:2px dashed #ccc;font-size:12px;color:#666;} @media print{body{margin:0;padding:0;}}</style>
+        <style>
+            *{margin:0;padding:0;box-sizing:border-box;} body{font-family:'Inter',Arial,sans-serif;padding:20px;background:white;} .bill-container{max-width:800px;margin:0 auto;} .header{text-align:center;border-bottom:3px solid #2c5364;padding-bottom:15px;margin-bottom:20px;} .shop-name{font-size:24px;font-weight:900;color:#1a2a36;} .shop-details{color:#2c5364;font-weight:600;} .info-row{display:flex;justify-content:space-between;margin-bottom:15px;flex-wrap:wrap;} .customer-box{background:#f8fafc;padding:12px;border-radius:12px;margin-bottom:20px;} table{width:100%;border-collapse:collapse;margin-bottom:20px;} th{background-color:#2c5364;color:white;padding:10px;text-align:left;border:1px solid #ddd;} td{padding:8px;border:1px solid #ddd;} .totals{text-align:right;margin-top:15px;} .grand-total{font-size:18px;font-weight:800;color:#2c5364;margin-top:10px;} .footer{text-align:center;margin-top:30px;padding-top:15px;border-top:2px dashed #ccc;font-size:12px;color:#666;} @media print{body{margin:0;padding:0;}}
+        </style>
         </head>
         <body>
         <div class="bill-container">
