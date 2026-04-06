@@ -375,6 +375,11 @@
             padding: 12px;
             margin-bottom: 10px;
             border: 1px solid #e2e8f0;
+            transition: 0.2s;
+        }
+        .list-item:hover {
+            background: #eef2ff;
+            transform: translateX(4px);
         }
         @media (max-width: 700px) {
             .nav-cards { grid-template-columns: repeat(2, 1fr); }
@@ -484,15 +489,6 @@
     </div>
 </div>
 
-<!-- Scan Barcode Modal for Books Database -->
-<div id="bookScanModal" class="modal">
-    <div class="modal-content">
-        <h3><i class="fas fa-camera"></i> Scan Barcode for Book</h3>
-        <div id="bookScanCameraContainer" class="camera-preview"></div>
-        <button id="stopBookScanModalBtn" class="btn-outline" style="width: 100%;"><i class="fas fa-times"></i> Close Camera</button>
-    </div>
-</div>
-
 <!-- Quantity Modal -->
 <div id="quantityModal" class="modal">
     <div class="modal-content">
@@ -508,13 +504,17 @@
     </div>
 </div>
 
-<!-- Add Book Modal -->
+<!-- Add Book Modal with Small Camera Popup -->
 <div id="addBookModal" class="modal">
     <div class="modal-content">
-        <h3><i class="fas fa-book"></i> Add New Book</h3>
+        <h3><i class="fas fa-book"></i> Add New Record</h3>
         <div class="input-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
             <input type="text" id="newBookBarcode" placeholder="Barcode *" style="flex:1;">
             <button id="scanBookBarcodeBtn" class="btn-outline"><i class="fas fa-camera"></i> Scan</button>
+        </div>
+        <div id="bookCameraContainer" style="display: none; margin: 10px 0;">
+            <div id="bookScannerView" class="camera-preview" style="min-height: 200px;"></div>
+            <button id="stopBookCameraBtn" class="btn-outline" style="width: 100%; margin-top: 8px;">Close Camera</button>
         </div>
         <input type="text" id="newBookName" placeholder="Book Name *">
         <input type="number" id="newBookPrice" placeholder="Price *" step="any">
@@ -608,10 +608,11 @@
         stopScanner();
     }
 
-    // Books Database Scanner - Professional Popup
-    async function openBookScannerPopup() {
-        document.getElementById('bookScanModal').style.display = 'flex';
-        const container = document.getElementById('bookScanCameraContainer');
+    // Books Database Scanner - Small popup, auto close on scan
+    async function openBookScanner() {
+        const container = document.getElementById('bookScannerView');
+        if (!container) return;
+        document.getElementById('bookCameraContainer').style.display = 'block';
         container.innerHTML = '<div id="bookScanView" style="width:100%;"></div>';
         
         stopScanner();
@@ -626,23 +627,23 @@
             locate: true,
             numOfWorkers: 4
         }, (err) => {
-            if (err) { showToast("Camera error: " + err, true); closeBookScannerPopup(); return; }
+            if (err) { showToast("Camera error: " + err, true); closeBookScanner(); return; }
             Quagga.start();
             activeScanner = true;
             Quagga.onDetected(async (data) => {
                 const code = data.codeResult.code;
                 if (code) {
                     stopScanner();
-                    closeBookScannerPopup();
                     document.getElementById('newBookBarcode').value = code;
-                    showToast("Barcode scanned: " + code);
+                    closeBookScanner();
+                    showToast("✅ Barcode scanned: " + code);
                 }
             });
         });
     }
 
-    function closeBookScannerPopup() {
-        document.getElementById('bookScanModal').style.display = 'none';
+    function closeBookScanner() {
+        document.getElementById('bookCameraContainer').style.display = 'none';
         stopScanner();
     }
 
@@ -814,33 +815,31 @@
         currentCustomer.previousBalance = newBalance;
         document.getElementById('prevBalanceDisplay').innerText = newBalance.toFixed(2);
         
-        // Professional PDF Bill with complete details
-        const billDiv = document.createElement('div');
-        billDiv.style.padding = '30px';
-        billDiv.style.fontFamily = 'Inter, sans-serif';
-        billDiv.style.maxWidth = '800px';
-        billDiv.style.margin = '0 auto';
-        billDiv.style.backgroundColor = 'white';
+        // Create PDF with complete bill details
+        const pdfContent = document.createElement('div');
+        pdfContent.style.padding = '30px';
+        pdfContent.style.fontFamily = 'Inter, sans-serif';
+        pdfContent.style.backgroundColor = 'white';
+        pdfContent.style.maxWidth = '800px';
+        pdfContent.style.margin = '0 auto';
         
-        billDiv.innerHTML = `
+        pdfContent.innerHTML = `
             <div style="text-align: center; border-bottom: 3px solid #2c5364; padding-bottom: 20px; margin-bottom: 20px;">
                 <h1 style="color: #1a2a36; font-size: 28px; font-weight: 900; margin-bottom: 5px;">📚 SANA BOOK DEPOT 📚</h1>
-                <p style="color: #2c5364; font-weight: 600; font-size: 14px;">Usman Bazar Havelian</p>
-                <p style="color: #2c5364; font-weight: 600; font-size: 14px;">📞 +923235124366</p>
+                <p style="color: #2c5364; font-weight: 600;">Usman Bazar Havelian</p>
+                <p style="color: #2c5364; font-weight: 600;">📞 +923235124366</p>
             </div>
-            
             <div style="margin-bottom: 20px;">
                 <p><strong>Bill No:</strong> ${new Date().getTime().toString().slice(-8)}</p>
                 <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
                 <p><strong>Customer Name:</strong> ${currentCustomer.name}</p>
                 <p><strong>Previous Balance:</strong> ₹${currentCustomer.previousBalance.toFixed(2)}</p>
             </div>
-            
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                 <thead>
                     <tr style="background-color: #2c5364; color: white;">
-                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Item</th>
-                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Qty</th>
+                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Item Name</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Quantity</th>
                         <th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Price (₹)</th>
                         <th style="padding: 12px; text-align: right; border: 1px solid #ddd;">Amount (₹)</th>
                     </tr>
@@ -856,7 +855,6 @@
                     `).join('')}
                 </tbody>
             </table>
-            
             <div style="text-align: right; margin-top: 20px;">
                 <p><strong>Subtotal:</strong> ₹${sub.toFixed(2)}</p>
                 <p><strong>Discount (${discountPercent}%):</strong> ₹${discAmt.toFixed(2)}</p>
@@ -866,24 +864,25 @@
                 <p><strong>Amount Paid:</strong> ₹${paid.toFixed(2)}</p>
                 <p><strong>Balance Due:</strong> ₹${balance.toFixed(2)}</p>
             </div>
-            
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ccc;">
-                <p style="font-size: 14px; color: #666;">Thank you for shopping with us!</p>
-                <p style="font-size: 12px; color: #999;">This is a computer generated bill - no signature required</p>
+                <p style="font-size: 14px;">Thank you for shopping with us!</p>
+                <p style="font-size: 12px; color: #999;">This is a computer generated bill</p>
             </div>
         `;
         
-        html2pdf().from(billDiv).set({
-            margin: 0.5,
+        const opt = {
+            margin: [0.5, 0.5, 0.5, 0.5],
             filename: `Bill_${currentCustomer.name}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, letterRendering: true },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        }).save();
+        };
         
-        showToast("Bill saved & PDF generated successfully!");
+        html2pdf().set(opt).from(pdfContent).save();
         
-        // Reset bill
+        showToast("✅ Bill saved & PDF generated successfully!");
+        
+        // Reset bill after saving
         billItems = [];
         renderBillTable();
         computeTotals();
@@ -896,7 +895,7 @@
 
     async function addNewCustomer() {
         let name = prompt("Enter customer name");
-        if(name){ await addDoc(collection(window.db, "customers"), { name, previousBalance:0 }); loadCustomers(); showToast("Customer added"); }
+        if(name){ await addDoc(collection(window.db, "customers"), { name, previousBalance:0 }); loadCustomers(); showToast("✅ Customer added"); }
     }
 
     async function saveNewBook() {
@@ -913,6 +912,7 @@
         document.getElementById('newBookBarcode').value = ''; 
         document.getElementById('newBookName').value = ''; 
         document.getElementById('newBookPrice').value = '';
+        closeBookScanner();
     }
 
     function attachEvents() {
@@ -927,23 +927,19 @@
             };
         });
         
-        // POS Scanner events
         document.getElementById('openScanModalBtn').onclick = openPOSScanner;
         document.getElementById('stopScanModalBtn').onclick = closePOSScanner;
-        
-        // Books Database Scanner events - Professional Popup
-        document.getElementById('scanBookBarcodeBtn').onclick = openBookScannerPopup;
-        document.getElementById('stopBookScanModalBtn').onclick = closeBookScannerPopup;
-        
+        document.getElementById('scanBookBarcodeBtn').onclick = openBookScanner;
+        document.getElementById('stopBookCameraBtn').onclick = closeBookScanner;
         document.getElementById('confirmQtyBtn').onclick = addToBillWithQuantity;
         document.getElementById('cancelQtyBtn').onclick = () => document.getElementById('quantityModal').style.display = 'none';
         document.getElementById('newCustomerBtn').onclick = addNewCustomer;
         document.getElementById('addCustomerPageBtn').onclick = addNewCustomer;
         document.getElementById('generatePdfBtn').onclick = generateAndSaveBill;
         document.getElementById('refreshLedgerBtn').onclick = loadLedger;
-        document.getElementById('openAddBookModalBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'flex'; };
+        document.getElementById('openAddBookModalBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'flex'; closeBookScanner(); };
         document.getElementById('saveBookBtn').onclick = saveNewBook;
-        document.getElementById('cancelAddBookBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'none'; };
+        document.getElementById('cancelAddBookBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'none'; closeBookScanner(); };
         document.getElementById('discountPercent').addEventListener('input', (e) => { discountPercent = parseFloat(e.target.value)||0; computeTotals(); });
         document.getElementById('paidAmount').addEventListener('input', computeTotals);
         
