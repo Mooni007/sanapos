@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    <!-- html2pdf is no longer needed for bill generation; we use native print -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
@@ -379,6 +378,7 @@
             margin-bottom: 10px;
             border: 1px solid #e2e8f0;
             transition: 0.2s;
+            cursor: pointer;
         }
         .list-item:hover {
             background: #eef2ff;
@@ -390,26 +390,6 @@
             .connection-status { top: 70px; right: 10px; }
             .modal-content { padding: 20px; }
             .camera-preview { min-height: 180px; }
-        }
-        /* Print styles for bill */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .bill-print-area, .bill-print-area * {
-                visibility: visible;
-            }
-            .bill-print-area {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                padding: 20px;
-                font-family: 'Inter', sans-serif;
-            }
-            .no-print {
-                display: none;
-            }
         }
     </style>
 </head>
@@ -441,6 +421,7 @@
         <div class="nav-card" data-page="ledgerPage"><i class="fas fa-receipt"></i><h3>Bills Ledger</h3></div>
     </div>
 
+    <!-- POS PAGE -->
     <div id="posPage" class="page active-page">
         <div class="card">
             <h2><i class="fas fa-user-circle"></i> Customer Selection</h2>
@@ -483,6 +464,7 @@
         </div>
     </div>
 
+    <!-- BOOKS PAGE -->
     <div id="booksPage" class="page">
         <div class="card">
             <h2><i class="fas fa-database"></i> Books Inventory</h2>
@@ -491,12 +473,30 @@
         </div>
     </div>
 
+    <!-- CUSTOMERS PAGE -->
     <div id="customersPage" class="page">
         <div class="card"><h2><i class="fas fa-address-card"></i> All Customers</h2><button id="addCustomerPageBtn"><i class="fas fa-user-plus"></i> Add Customer</button><div id="customersList" style="margin-top:16px;"></div></div>
     </div>
 
+    <!-- LEDGER PAGE -->
     <div id="ledgerPage" class="page">
-        <div class="card"><h2><i class="fas fa-history"></i> Bill Ledger</h2><button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Refresh</button><div id="ledgerList" style="margin-top:16px;"></div></div>
+        <div class="card">
+            <h2><i class="fas fa-history"></i> Bills Ledger</h2>
+            <button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <div id="ledgerList" style="margin-top:16px; max-height: 500px; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Professional New Customer Modal -->
+<div id="newCustomerModal" class="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-user-plus"></i> Add New Customer</h3>
+        <input type="text" id="newCustomerName" placeholder="Customer Name *" autocomplete="off">
+        <div class="flex-btns">
+            <button id="cancelCustomerBtn" class="btn-outline">Cancel</button>
+            <button id="confirmCustomerBtn"><i class="fas fa-save"></i> Save Customer</button>
+        </div>
     </div>
 </div>
 
@@ -716,7 +716,176 @@
         const snapshot = await getDocs(q);
         const container = document.getElementById('ledgerList');
         if(container) container.innerHTML = '';
-        snapshot.forEach(docSnap => { const data = docSnap.data(); container.innerHTML += `<div class="list-item" onclick="alert('Items: ${data.items?.map(i=>`${i.name} x${i.quantity}`).join(', ')}\\nGrand Total: ${data.grandTotal} PKR')"><i class="fas fa-receipt"></i> <strong>${data.customerName}</strong><br>${new Date(data.timestamp).toLocaleString()}<br>Total: ${data.grandTotal} PKR</div>`; });
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const dateObj = new Date(data.timestamp);
+            const formattedDate = dateObj.toLocaleString();
+            container.innerHTML += `
+                <div class="list-item" data-bill='${JSON.stringify(data)}'>
+                    <i class="fas fa-receipt"></i> <strong>${data.customerName}</strong><br>
+                    <small>${formattedDate}</small><br>
+                    Total: ${data.grandTotal} PKR
+                </div>
+            `;
+        });
+        // Attach click event to each ledger item to view bill
+        document.querySelectorAll('#ledgerList .list-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const billData = JSON.parse(el.getAttribute('data-bill'));
+                viewBillReceipt(billData);
+            });
+        });
+    }
+
+    // Function to view a past bill receipt (opens print preview)
+    function viewBillReceipt(bill) {
+        const dateObj = new Date(bill.timestamp);
+        const formattedDate = dateObj.toLocaleString();
+        let itemsRows = '';
+        bill.items.forEach(item => {
+            itemsRows += `
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${item.name}</td>
+                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${item.quantity}</td>
+                    <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${item.price.toFixed(2)}</td>
+                    <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${(item.price * item.quantity).toFixed(2)}</td>
+                </tr>
+            `;
+        });
+        
+        const billHTML = `<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Bill - Sana Book Depot</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: 'Inter', Arial, sans-serif;
+                    padding: 20px;
+                    background: white;
+                }
+                .bill-container {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    background: white;
+                }
+                .header {
+                    text-align: center;
+                    border-bottom: 3px solid #2c5364;
+                    padding-bottom: 15px;
+                    margin-bottom: 20px;
+                }
+                .shop-name {
+                    font-size: 24px;
+                    font-weight: 900;
+                    color: #1a2a36;
+                }
+                .shop-details {
+                    color: #2c5364;
+                    font-weight: 600;
+                    margin-top: 5px;
+                }
+                .info-row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 15px;
+                    flex-wrap: wrap;
+                }
+                .customer-box {
+                    background: #f8fafc;
+                    padding: 12px;
+                    border-radius: 12px;
+                    margin-bottom: 20px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+                th {
+                    background-color: #2c5364;
+                    color: white;
+                    padding: 10px;
+                    text-align: left;
+                    border: 1px solid #ddd;
+                }
+                td {
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                }
+                .totals {
+                    text-align: right;
+                    margin-top: 15px;
+                }
+                .grand-total {
+                    font-size: 18px;
+                    font-weight: 800;
+                    color: #2c5364;
+                    margin-top: 10px;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 30px;
+                    padding-top: 15px;
+                    border-top: 2px dashed #ccc;
+                    font-size: 12px;
+                    color: #666;
+                }
+                @media print {
+                    body { margin: 0; padding: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="bill-container">
+                <div class="header">
+                    <div class="shop-name">📚 SANA BOOK DEPOT 📚</div>
+                    <div class="shop-details">Usman Bazar Havelian | +923235124366</div>
+                </div>
+                <div class="info-row">
+                    <div><strong>Bill No:</strong> ${bill.timestamp.slice(-8)}</div>
+                    <div><strong>Date:</strong> ${formattedDate}</div>
+                </div>
+                <div class="customer-box">
+                    <p><strong>Customer:</strong> ${bill.customerName}</p>
+                    <p><strong>Previous Balance:</strong> ${bill.previousBalance.toFixed(2)} PKR</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th></tr>
+                    </thead>
+                    <tbody>
+                        ${itemsRows}
+                    </tbody>
+                </table>
+                <div class="totals">
+                    <p><strong>Subtotal:</strong> ${bill.subtotal.toFixed(2)} PKR</p>
+                    <p><strong>Discount (${bill.discountPercent}%):</strong> ${bill.discountAmount.toFixed(2)} PKR</p>
+                    <p><strong>Total After Discount:</strong> ${(bill.subtotal - bill.discountAmount).toFixed(2)} PKR</p>
+                    <p><strong>Previous Balance:</strong> ${bill.previousBalance.toFixed(2)} PKR</p>
+                    <p class="grand-total"><strong>Grand Total:</strong> ${bill.grandTotal.toFixed(2)} PKR</p>
+                    <p><strong>Amount Paid:</strong> ${bill.amountPaid.toFixed(2)} PKR</p>
+                    <p><strong>Balance Due:</strong> ${bill.balanceDue.toFixed(2)} PKR</p>
+                </div>
+                <div class="footer">
+                    <p>Thank you for shopping with us!</p>
+                    <p>This is a computer generated bill</p>
+                </div>
+            </div>
+            <script>
+                window.onload = function() {
+                    setTimeout(function() {
+                        window.print();
+                    }, 200);
+                };
+            <\/script>
+        </body>
+        </html>`;
+        
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(billHTML);
+        printWindow.document.close();
     }
 
     function renderBillTable() {
@@ -754,7 +923,6 @@
         document.getElementById('balanceSpan').innerText = balance.toFixed(2) + " PKR";
     }
 
-    // ---------- BILL GENERATION (FIXED: uses native print / save as PDF) ----------
     function buildBillHTML() {
         let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
         let discAmt = sub*(discountPercent/100);
@@ -765,7 +933,6 @@
         const dateTime = new Date().toLocaleString();
         const billNo = new Date().getTime().toString().slice(-8);
         
-        // Items table rows
         let itemsRows = '';
         billItems.forEach(item => {
             itemsRows += `
@@ -859,7 +1026,6 @@
                 }
                 @media print {
                     body { margin: 0; padding: 0; }
-                    .no-print { display: none; }
                 }
             </style>
         </head>
@@ -901,7 +1067,6 @@
             </div>
             <script>
                 window.onload = function() {
-                    // Automatically open print dialog (Save as PDF)
                     setTimeout(function() {
                         window.print();
                     }, 200);
@@ -942,13 +1107,11 @@
                 timestamp: new Date().toISOString() 
             };
             
-            // Save to Firebase
             await addDoc(collection(window.db, "ledger"), ledgerData);
             await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
             currentCustomer.previousBalance = newBalance;
             document.getElementById('prevBalanceDisplay').innerText = newBalance.toFixed(2) + " PKR";
             
-            // Build and open print window (Save as PDF)
             const billHTML = buildBillHTML();
             const printWindow = window.open('', '_blank');
             printWindow.document.write(billHTML);
@@ -956,7 +1119,6 @@
             
             showToast("✅ Bill saved to Firebase. Print preview opened. Use 'Save as PDF' to download.");
             
-            // Reset cart after successful save
             billItems = [];
             renderBillTable();
             computeTotals();
@@ -975,9 +1137,22 @@
         }
     }
 
-    async function addNewCustomer() {
-        let name = prompt("Enter customer name");
-        if(name){ await addDoc(collection(window.db, "customers"), { name, previousBalance:0 }); loadCustomers(); showToast("✅ Customer added"); }
+    // Professional New Customer modal functions
+    function openNewCustomerModal() {
+        document.getElementById('newCustomerName').value = '';
+        document.getElementById('newCustomerModal').style.display = 'flex';
+    }
+    
+    async function saveNewCustomer() {
+        const name = document.getElementById('newCustomerName').value.trim();
+        if (!name) {
+            showToast("Please enter customer name", true);
+            return;
+        }
+        await addDoc(collection(window.db, "customers"), { name, previousBalance: 0 });
+        showToast("✅ Customer added successfully!");
+        document.getElementById('newCustomerModal').style.display = 'none';
+        await loadCustomers();
     }
 
     async function saveNewBook() {
@@ -1003,6 +1178,7 @@
                 document.querySelectorAll('.page').forEach(p=>p.classList.remove('active-page'));
                 document.getElementById(card.dataset.page).classList.add('active-page');
                 if(card.dataset.page === 'posPage') loadAllBooks();
+                if(card.dataset.page === 'ledgerPage') loadLedger();
                 stopScanner();
             };
         });
@@ -1013,8 +1189,10 @@
         document.getElementById('stopBookCameraBtn').onclick = closeBookScanner;
         document.getElementById('confirmQtyBtn').onclick = addToBillWithQuantity;
         document.getElementById('cancelQtyBtn').onclick = () => document.getElementById('quantityModal').style.display = 'none';
-        document.getElementById('newCustomerBtn').onclick = addNewCustomer;
-        document.getElementById('addCustomerPageBtn').onclick = addNewCustomer;
+        document.getElementById('newCustomerBtn').onclick = openNewCustomerModal;
+        document.getElementById('addCustomerPageBtn').onclick = openNewCustomerModal;
+        document.getElementById('cancelCustomerBtn').onclick = () => document.getElementById('newCustomerModal').style.display = 'none';
+        document.getElementById('confirmCustomerBtn').onclick = saveNewCustomer;
         document.getElementById('generatePdfBtn').onclick = generateAndSaveBill;
         document.getElementById('refreshLedgerBtn').onclick = loadLedger;
         document.getElementById('openAddBookModalBtn').onclick = () => { document.getElementById('addBookModal').style.display = 'flex'; closeBookScanner(); };
