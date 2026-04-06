@@ -792,111 +792,134 @@
         if(!currentCustomer.id) { showToast("Select customer",true); return; }
         if(billItems.length===0) { showToast("No items in cart",true); return; }
         
-        let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
-        let discAmt = sub*(discountPercent/100);
-        let grand = (sub - discAmt) + currentCustomer.previousBalance;
-        let paid = parseFloat(document.getElementById('paidAmount').value)||0;
-        let balance = grand - paid;
-        let newBalance = currentCustomer.previousBalance + balance;
+        // Show loading indicator
+        const btn = document.getElementById('generatePdfBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Processing...';
+        btn.disabled = true;
         
-        const ledgerData = { 
-            customerId: currentCustomer.id, 
-            customerName: currentCustomer.name, 
-            items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), 
-            subtotal:sub, 
-            discountPercent, 
-            discountAmount:discAmt, 
-            previousBalance:currentCustomer.previousBalance, 
-            grandTotal:grand, 
-            amountPaid:paid, 
-            balanceDue:balance, 
-            timestamp: new Date().toISOString() 
-        };
-        
-        // Save to Firebase
-        await addDoc(collection(window.db, "ledger"), ledgerData);
-        await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
-        currentCustomer.previousBalance = newBalance;
-        document.getElementById('prevBalanceDisplay').innerText = newBalance.toFixed(2);
-        
-        // Generate Professional PDF Bill
-        const pdfContent = document.createElement('div');
-        pdfContent.style.padding = '25px';
-        pdfContent.style.fontFamily = 'Inter, sans-serif';
-        pdfContent.style.backgroundColor = 'white';
-        pdfContent.style.maxWidth = '800px';
-        pdfContent.style.margin = '0 auto';
-        
-        pdfContent.innerHTML = `
-            <div style="text-align: center; border-bottom: 3px solid #2c5364; padding-bottom: 15px; margin-bottom: 20px;">
-                <h1 style="color: #1a2a36; font-size: 26px; font-weight: 900; margin-bottom: 5px;">📚 SANA BOOK DEPOT 📚</h1>
-                <p style="color: #2c5364; font-weight: 600;">Usman Bazar Havelian</p>
-                <p style="color: #2c5364; font-weight: 600;">📞 +923235124366</p>
-            </div>
-            <div style="margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap;">
-                <div><strong>Bill No:</strong> ${new Date().getTime().toString().slice(-8)}</div>
-                <div><strong>Date:</strong> ${new Date().toLocaleString()}</div>
-            </div>
-            <div style="margin-bottom: 20px; padding: 10px; background: #f8fafc; border-radius: 12px;">
-                <p><strong>Customer:</strong> ${currentCustomer.name}</p>
-                <p><strong>Previous Balance:</strong> ₹${currentCustomer.previousBalance.toFixed(2)}</p>
-            </div>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                <thead>
-                    <tr style="background-color: #2c5364; color: white;">
-                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Item</th>
-                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Qty</th>
-                        <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Price (₹)</th>
-                        <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Amount (₹)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${billItems.map(item => `
-                        <tr>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${item.name}</td>
-                            <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${item.quantity}</td>
-                            <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${item.price.toFixed(2)}</td>
-                            <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${(item.price * item.quantity).toFixed(2)}</td>
+        try {
+            let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
+            let discAmt = sub*(discountPercent/100);
+            let grand = (sub - discAmt) + currentCustomer.previousBalance;
+            let paid = parseFloat(document.getElementById('paidAmount').value)||0;
+            let balance = grand - paid;
+            let newBalance = currentCustomer.previousBalance + balance;
+            
+            const ledgerData = { 
+                customerId: currentCustomer.id, 
+                customerName: currentCustomer.name, 
+                items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), 
+                subtotal:sub, 
+                discountPercent, 
+                discountAmount:discAmt, 
+                previousBalance:currentCustomer.previousBalance, 
+                grandTotal:grand, 
+                amountPaid:paid, 
+                balanceDue:balance, 
+                timestamp: new Date().toISOString() 
+            };
+            
+            // Save to Firebase
+            await addDoc(collection(window.db, "ledger"), ledgerData);
+            await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
+            currentCustomer.previousBalance = newBalance;
+            document.getElementById('prevBalanceDisplay').innerText = newBalance.toFixed(2);
+            
+            // Create PDF content as a temporary DOM element
+            const pdfContainer = document.createElement('div');
+            pdfContainer.style.position = 'absolute';
+            pdfContainer.style.left = '-9999px';
+            pdfContainer.style.top = '-9999px';
+            pdfContainer.style.width = '800px';
+            pdfContainer.style.backgroundColor = 'white';
+            pdfContainer.style.padding = '25px';
+            pdfContainer.style.fontFamily = 'Inter, sans-serif';
+            
+            pdfContainer.innerHTML = `
+                <div style="text-align: center; border-bottom: 3px solid #2c5364; padding-bottom: 15px; margin-bottom: 20px;">
+                    <h1 style="color: #1a2a36; font-size: 26px; font-weight: 900; margin-bottom: 5px;">📚 SANA BOOK DEPOT 📚</h1>
+                    <p style="color: #2c5364; font-weight: 600;">Usman Bazar Havelian</p>
+                    <p style="color: #2c5364; font-weight: 600;">📞 +923235124366</p>
+                </div>
+                <div style="margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap;">
+                    <div><strong>Bill No:</strong> ${new Date().getTime().toString().slice(-8)}</div>
+                    <div><strong>Date:</strong> ${new Date().toLocaleString()}</div>
+                </div>
+                <div style="margin-bottom: 20px; padding: 10px; background: #f8fafc; border-radius: 12px;">
+                    <p><strong>Customer:</strong> ${currentCustomer.name}</p>
+                    <p><strong>Previous Balance:</strong> ₹${currentCustomer.previousBalance.toFixed(2)}</p>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #2c5364; color: white;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Item</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Qty</th>
+                            <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Price (₹)</th>
+                            <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Amount (₹)</th>
                         </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-            <div style="text-align: right; margin-top: 20px;">
-                <p><strong>Subtotal:</strong> ₹${sub.toFixed(2)}</p>
-                <p><strong>Discount (${discountPercent}%):</strong> ₹${discAmt.toFixed(2)}</p>
-                <p><strong>Total After Discount:</strong> ₹${(sub - discAmt).toFixed(2)}</p>
-                <p><strong>Previous Balance:</strong> ₹${currentCustomer.previousBalance.toFixed(2)}</p>
-                <p style="font-size: 18px; font-weight: 800; color: #2c5364; margin-top: 10px;"><strong>Grand Total:</strong> ₹${grand.toFixed(2)}</p>
-                <p><strong>Amount Paid:</strong> ₹${paid.toFixed(2)}</p>
-                <p><strong>Balance Due:</strong> ₹${balance.toFixed(2)}</p>
-            </div>
-            <div style="text-align: center; margin-top: 30px; padding-top: 15px; border-top: 2px dashed #ccc;">
-                <p style="font-size: 14px;">Thank you for shopping with us!</p>
-                <p style="font-size: 12px; color: #999;">This is a computer generated bill</p>
-            </div>
-        `;
-        
-        const opt = {
-            margin: [0.5, 0.5, 0.5, 0.5],
-            filename: `Bill_${currentCustomer.name}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, letterRendering: true },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        
-        html2pdf().set(opt).from(pdfContent).save();
-        
-        showToast("✅ Bill saved to Firebase & PDF generated!");
-        
-        // Reset bill after saving
-        billItems = [];
-        renderBillTable();
-        computeTotals();
-        document.getElementById('paidAmount').value = 0;
-        discountPercent = 0;
-        document.getElementById('discountPercent').value = 0;
-        computeTotals();
-        loadLedger(); // refresh ledger view
+                    </thead>
+                    <tbody>
+                        ${billItems.map(item => `
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${item.name}</td>
+                                <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${item.quantity}</td>
+                                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${item.price.toFixed(2)}</td>
+                                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${(item.price * item.quantity).toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div style="text-align: right; margin-top: 20px;">
+                    <p><strong>Subtotal:</strong> ₹${sub.toFixed(2)}</p>
+                    <p><strong>Discount (${discountPercent}%):</strong> ₹${discAmt.toFixed(2)}</p>
+                    <p><strong>Total After Discount:</strong> ₹${(sub - discAmt).toFixed(2)}</p>
+                    <p><strong>Previous Balance:</strong> ₹${currentCustomer.previousBalance.toFixed(2)}</p>
+                    <p style="font-size: 18px; font-weight: 800; color: #2c5364; margin-top: 10px;"><strong>Grand Total:</strong> ₹${grand.toFixed(2)}</p>
+                    <p><strong>Amount Paid:</strong> ₹${paid.toFixed(2)}</p>
+                    <p><strong>Balance Due:</strong> ₹${balance.toFixed(2)}</p>
+                </div>
+                <div style="text-align: center; margin-top: 30px; padding-top: 15px; border-top: 2px dashed #ccc;">
+                    <p style="font-size: 14px;">Thank you for shopping with us!</p>
+                    <p style="font-size: 12px; color: #999;">This is a computer generated bill</p>
+                </div>
+            `;
+            
+            document.body.appendChild(pdfContainer);
+            
+            // Generate PDF with proper options
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `Bill_${currentCustomer.name}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, letterRendering: true, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            await html2pdf().set(opt).from(pdfContainer).save();
+            
+            // Clean up
+            document.body.removeChild(pdfContainer);
+            
+            showToast("✅ Bill saved to Firebase & PDF generated!");
+            
+            // Reset bill after saving
+            billItems = [];
+            renderBillTable();
+            computeTotals();
+            document.getElementById('paidAmount').value = 0;
+            discountPercent = 0;
+            document.getElementById('discountPercent').value = 0;
+            computeTotals();
+            loadLedger(); // refresh ledger view
+            
+        } catch (error) {
+            console.error("PDF generation error:", error);
+            showToast("❌ Error generating PDF. Please try again.", true);
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     }
 
     async function addNewCustomer() {
