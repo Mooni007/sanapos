@@ -939,7 +939,7 @@
             <div class="header"><div class="shop-name">📚 SANA BOOK DEPOT 📚</div><div class="shop-details">Usman Bazar Havelian | +923235124366</div></div>
             <div class="info-row"><div><strong>Bill No:</strong> ${billNo}</div><div><strong>Date:</strong> ${dateTime}</div></div>
             <div class="customer-box"><p><strong>Customer:</strong> ${currentCustomer.name}</p><p><strong>Previous Balance:</strong> ${currentCustomer.previousBalance.toFixed(2)} PKR</p></div>
-            <table><thead><tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th></tr></thead><tbody>${itemsRows}</tbody></table>
+            <tr><thead><tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th></tr></thead><tbody>${itemsRows}</tbody></table>
             <div class="totals">
                 <p><strong>Subtotal:</strong> ${sub.toFixed(2)} PKR</p>
                 <p><strong>Discount (${discountPercent}%):</strong> ${discAmt.toFixed(2)} PKR</p>
@@ -968,7 +968,7 @@
             let discAmt = sub*(discountPercent/100);
             let currentPurchaseAfterDisc = sub - discAmt;
             let paid = parseFloat(document.getElementById('paidAmount').value)||0;
-            // Correct new balance calculation:
+            // Correct balance update: new balance = previous balance + current purchase - amount paid
             let newBalance = currentCustomer.previousBalance + currentPurchaseAfterDisc - paid;
             if (newBalance < 0) newBalance = 0;
             let grand = currentCustomer.previousBalance + currentPurchaseAfterDisc;
@@ -996,7 +996,9 @@
             printWindow.document.write(billHTML);
             printWindow.document.close();
             showToast("✅ Bill saved to Firebase. Print preview opened. Use 'Save as PDF' to download.");
-            billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent = 0; document.getElementById('discountPercent').value = 0; computeTotals(); loadLedger(); loadCustomers();
+            billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent = 0; document.getElementById('discountPercent').value = 0; computeTotals(); 
+            await loadLedger(); 
+            await loadCustomers(); // Refresh customer list to show updated balance
         } catch (error) { console.error("Bill save error:", error); showToast("❌ Error saving bill. Please try again.", true); } 
         finally { btn.innerHTML = originalText; btn.disabled = false; }
     }
