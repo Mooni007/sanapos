@@ -444,7 +444,7 @@
         </div>
         <div class="card">
             <h2><i class="fas fa-search"></i> Add Items to Cart</h2>
-            <button id="openScanModalBtn" style="width: 100%;"><i class="fas fa-camera"></i> Scan Barcode</button>
+            <button id="openScanModalBtn" style="width: 100%;"><i class="fas fa-camera"></i> Scan Barcode (ISBN/EAN-13)</button>
             <div class="search-container" style="margin-top: 12px;">
                 <input type="text" id="searchItemInput" placeholder="🔍 Search book by name..." autocomplete="off">
                 <div id="autocompleteResults" class="autocomplete-list" style="display: none;"></div>
@@ -535,7 +535,7 @@
 <!-- Scan Barcode Modal for POS -->
 <div id="scanModal" class="modal">
     <div class="modal-content">
-        <h3><i class="fas fa-camera"></i> Scan Barcode (EAN-13 / ISBN)</h3>
+        <h3><i class="fas fa-camera"></i> Scan ISBN / EAN-13 Barcode</h3>
         <div id="scanCameraContainer" class="camera-preview"></div>
         <button id="stopScanModalBtn" class="btn-outline" style="width: 100%;"><i class="fas fa-times"></i> Close Camera</button>
     </div>
@@ -604,14 +604,14 @@
         }
     }
 
-    // Enhanced validation: EAN-13 (13 digits), EAN-8 (8 digits), Code128/Code39 (alphanumeric length >= 4)
+    // ISBN / EAN-13: exactly 13 digits; also allow EAN-8 and Code128/39 as fallback
     function isValidBarcode(code) {
         if (!code) return false;
-        // EAN-13: exactly 13 digits
+        // EAN-13 (ISBN): 13 digits
         if (/^\d{13}$/.test(code)) return true;
-        // EAN-8: exactly 8 digits
+        // EAN-8: 8 digits
         if (/^\d{8}$/.test(code)) return true;
-        // Code128/Code39: alphanumeric, length between 4 and 20
+        // Code128/Code39: alphanumeric 4-20 chars
         if (/^[a-zA-Z0-9]{4,20}$/.test(code)) return true;
         return false;
     }
@@ -727,7 +727,7 @@
         }
     }
 
-    // Enhanced POS scanner: optimized for EAN-13 (ISBN)
+    // Enhanced POS scanner with focus on EAN-13 (ISBN)
     async function openPOSScanner() {
         document.getElementById('scanModal').style.display = 'flex';
         const container = document.getElementById('scanCameraContainer');
@@ -748,7 +748,7 @@
             },
             locate: true,
             numOfWorkers: 4,
-            frequency: 10  // increased frequency for better stability
+            frequency: 15  // higher frequency for faster detection
         }, (err) => {
             if (err) { showToast("Camera error: " + err, true); closePOSScanner(); return; }
             Quagga.start();
@@ -756,19 +756,20 @@
             Quagga.onDetected(async (data) => {
                 if (scanCooldown) return;
                 const code = data.codeResult.code;
-                // Accept only valid barcodes (especially EAN-13)
+                // Validate: must be 13-digit EAN-13 (ISBN) or other supported formats
                 if (!isValidBarcode(code)) {
-                    showToast("❌ Barcode not clear or invalid (expected EAN-13/ISBN). Please try again.", true);
+                    showToast("❌ Invalid barcode. Please scan a valid ISBN/EAN-13 barcode.", true);
                     scanCooldown = true;
                     setTimeout(() => { scanCooldown = false; }, 1500);
                     return;
                 }
-                // Prevent duplicate rapid scans
+                // Prevent duplicate scans
                 if (lastScannedCode === code) return;
                 lastScannedCode = code;
                 scanCooldown = true;
                 stopScanner();
                 closePOSScanner();
+                // Process the barcode (look up book, add to bill)
                 await processBarcodeForPOS(code);
                 setTimeout(() => { scanCooldown = false; lastScannedCode = null; }, 1000);
             });
@@ -780,7 +781,7 @@
         stopScanner();
     }
 
-    // Enhanced book scanner (for adding new books) with same EAN-13 validation
+    // Book scanner for adding new books (same validation)
     async function openBookScanner() {
         const container = document.getElementById('bookScannerView');
         if (!container) return;
@@ -802,7 +803,7 @@
             },
             locate: true,
             numOfWorkers: 4,
-            frequency: 10
+            frequency: 15
         }, (err) => {
             if (err) { showToast("Camera error: " + err, true); closeBookScanner(); return; }
             Quagga.start();
@@ -811,7 +812,7 @@
                 if (scanCooldown) return;
                 const code = data.codeResult.code;
                 if (!isValidBarcode(code)) {
-                    showToast("❌ Barcode not clear or invalid (expected EAN-13/ISBN). Please try again.", true);
+                    showToast("❌ Invalid barcode. Please scan a valid ISBN/EAN-13.", true);
                     scanCooldown = true;
                     setTimeout(() => { scanCooldown = false; }, 1500);
                     return;
@@ -836,11 +837,15 @@
     async function processBarcodeForPOS(barcode) {
         const book = allBooks.find(b => b.barcode === barcode);
         if (book) {
+            // Open quantity modal to add to cart
             openQuantityModal(barcode, book.name, book.price);
         } else {
-            if (confirm("Book not found! Would you like to add it now?")) {
+            const addNew = confirm("Book not found! Would you like to add it now?");
+            if (addNew) {
                 document.getElementById('newBookBarcode').value = barcode;
                 document.getElementById('addBookModal').style.display = 'flex';
+            } else {
+                showToast("Book not found in database", true);
             }
         }
     }
@@ -1020,7 +1025,7 @@
             <div class="header"><div class="shop-name">📚 SANA BOOK DEPOT 📚</div><div class="shop-details">Usman Bazar Havelian | +923235124366</div></div>
             <div class="info-row"><div><strong>Bill No:</strong> ${billNo}</div><div><strong>Date:</strong> ${dateTime}</div></div>
             <div class="customer-box"><p><strong>Customer:</strong> ${currentCustomer.name}</p><p><strong>Previous Balance:</strong> ${currentCustomer.previousBalance.toFixed(2)} PKR</p></div>
-            <table><thead><tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th></tr></thead><tbody>${itemsRows}</tbody></table>
+            <table><thead><tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th></tr></thead><tbody>${itemsRows}</tbody></tr>
             <div class="totals">
                 <p><strong>Subtotal:</strong> ${sub.toFixed(2)} PKR</p>
                 <p><strong>Discount (${discountPercent}%):</strong> ${discAmt.toFixed(2)} PKR</p>
