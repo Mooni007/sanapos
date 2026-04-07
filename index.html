@@ -6,7 +6,8 @@
     <title>Sana Book Depot - POS System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <!-- Modern Barcode Scanner Library (Html5Qrcode) - better mobile optimization -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
@@ -347,14 +348,14 @@
             border-radius: 20px;
             overflow: hidden;
             margin: 15px 0;
-            min-height: 220px;
-            max-height: 280px;
+            min-height: 280px;
+            max-height: 380px;
             position: relative;
         }
-        .camera-preview video, .camera-preview canvas {
+        .camera-preview video {
             width: 100%;
             height: auto;
-            max-height: 280px;
+            max-height: 380px;
             object-fit: cover;
         }
         .flex-btns {
@@ -399,7 +400,7 @@
             .top-shop-bar .shop-name { font-size: 1.2rem; }
             .connection-status { top: 70px; right: 10px; }
             .modal-content { padding: 20px; }
-            .camera-preview { min-height: 180px; }
+            .camera-preview { min-height: 240px; }
             .customer-actions { flex-direction: column; }
         }
     </style>
@@ -532,7 +533,7 @@
     </div>
 </div>
 
-<!-- Scan Barcode Modal for POS -->
+<!-- Scan Barcode Modal for POS - using Html5Qrcode -->
 <div id="scanModal" class="modal">
     <div class="modal-content">
         <h3><i class="fas fa-camera"></i> Scan ISBN / EAN-13 Barcode</h3>
@@ -584,10 +585,10 @@
     let billItems = [];
     let discountPercent = 0;
     let allBooks = [];
-    let activeScanner = null;
     let allCustomers = [];
-    let lastScannedCode = null;
-    let scanCooldown = false;
+    let html5QrCode = null;
+    let html5QrCodeBook = null;
+    let isScanning = false;
 
     function showToast(msg, isError = false) {
         const toast = document.getElementById('toastMsg');
@@ -597,21 +598,14 @@
         setTimeout(() => toast.style.opacity = '0', 3000);
     }
 
-    function stopScanner() {
-        if (activeScanner) {
-            Quagga.stop();
-            activeScanner = null;
-        }
-    }
-
-    // ISBN / EAN-13: exactly 13 digits; also allow EAN-8 and Code128/39 as fallback
-    function isValidBarcode(code) {
+    // Strict ISBN/EAN-13 validation
+    function isValidISBN(code) {
         if (!code) return false;
-        // EAN-13 (ISBN): 13 digits
+        // EAN-13: exactly 13 digits
         if (/^\d{13}$/.test(code)) return true;
         // EAN-8: 8 digits
         if (/^\d{8}$/.test(code)) return true;
-        // Code128/Code39: alphanumeric 4-20 chars
+        // Code128/Code39 fallback for older books
         if (/^[a-zA-Z0-9]{4,20}$/.test(code)) return true;
         return false;
     }
@@ -727,117 +721,101 @@
         }
     }
 
-    // Enhanced POS scanner with focus on EAN-13 (ISBN)
+    // Html5Qrcode scanner for POS
     async function openPOSScanner() {
+        if (isScanning) return;
         document.getElementById('scanModal').style.display = 'flex';
         const container = document.getElementById('scanCameraContainer');
-        container.innerHTML = '<div id="posScanView" style="width:100%;"></div>';
-        stopScanner();
-        lastScannedCode = null;
-        scanCooldown = false;
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector("#posScanView"),
-                constraints: { facingMode: "environment" }
-            },
-            decoder: {
-                readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader"],
-                multiple: false
-            },
-            locate: true,
-            numOfWorkers: 4,
-            frequency: 15  // higher frequency for faster detection
-        }, (err) => {
-            if (err) { showToast("Camera error: " + err, true); closePOSScanner(); return; }
-            Quagga.start();
-            activeScanner = true;
-            Quagga.onDetected(async (data) => {
-                if (scanCooldown) return;
-                const code = data.codeResult.code;
-                // Validate: must be 13-digit EAN-13 (ISBN) or other supported formats
-                if (!isValidBarcode(code)) {
-                    showToast("❌ Invalid barcode. Please scan a valid ISBN/EAN-13 barcode.", true);
-                    scanCooldown = true;
-                    setTimeout(() => { scanCooldown = false; }, 1500);
-                    return;
+        container.innerHTML = '<div id="posScanReader" style="width:100%;"></div>';
+        
+        try {
+            html5QrCode = new Html5Qrcode("posScanReader");
+            isScanning = true;
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 15,
+                    qrbox: { width: 280, height: 280 },
+                    aspectRatio: 1.0
+                },
+                async (decodedText) => {
+                    // Success callback
+                    if (!isValidISBN(decodedText)) {
+                        showToast("❌ Invalid barcode. Please scan a valid ISBN/EAN-13.", true);
+                        return;
+                    }
+                    await html5QrCode.stop();
+                    isScanning = false;
+                    closePOSScanner();
+                    await processBarcodeForPOS(decodedText);
+                },
+                (errorMessage) => {
+                    // Error callback - ignore frequent errors
+                    // console.warn(errorMessage);
                 }
-                // Prevent duplicate scans
-                if (lastScannedCode === code) return;
-                lastScannedCode = code;
-                scanCooldown = true;
-                stopScanner();
-                closePOSScanner();
-                // Process the barcode (look up book, add to bill)
-                await processBarcodeForPOS(code);
-                setTimeout(() => { scanCooldown = false; lastScannedCode = null; }, 1000);
-            });
-        });
+            );
+        } catch (err) {
+            showToast("Camera error: " + err, true);
+            closePOSScanner();
+        }
     }
 
     function closePOSScanner() {
+        if (html5QrCode && isScanning) {
+            html5QrCode.stop().catch(e => console.warn(e));
+            isScanning = false;
+        }
         document.getElementById('scanModal').style.display = 'none';
-        stopScanner();
     }
 
-    // Book scanner for adding new books (same validation)
+    // Html5Qrcode scanner for Books Database (add new book)
     async function openBookScanner() {
+        if (isScanning) return;
         const container = document.getElementById('bookScannerView');
         if (!container) return;
         document.getElementById('bookCameraContainer').style.display = 'block';
-        container.innerHTML = '<div id="bookScanView" style="width:100%;"></div>';
-        stopScanner();
-        lastScannedCode = null;
-        scanCooldown = false;
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector("#bookScanView"),
-                constraints: { facingMode: "environment" }
-            },
-            decoder: {
-                readers: ["ean_reader", "ean_8_reader", "code_128_reader", "code_39_reader"],
-                multiple: false
-            },
-            locate: true,
-            numOfWorkers: 4,
-            frequency: 15
-        }, (err) => {
-            if (err) { showToast("Camera error: " + err, true); closeBookScanner(); return; }
-            Quagga.start();
-            activeScanner = true;
-            Quagga.onDetected(async (data) => {
-                if (scanCooldown) return;
-                const code = data.codeResult.code;
-                if (!isValidBarcode(code)) {
-                    showToast("❌ Invalid barcode. Please scan a valid ISBN/EAN-13.", true);
-                    scanCooldown = true;
-                    setTimeout(() => { scanCooldown = false; }, 1500);
-                    return;
-                }
-                if (lastScannedCode === code) return;
-                lastScannedCode = code;
-                scanCooldown = true;
-                stopScanner();
-                document.getElementById('newBookBarcode').value = code;
-                closeBookScanner();
-                showToast("✅ Barcode scanned: " + code);
-                setTimeout(() => { scanCooldown = false; lastScannedCode = null; }, 1000);
-            });
-        });
+        container.innerHTML = '<div id="bookScanReader" style="width:100%;"></div>';
+        
+        try {
+            html5QrCodeBook = new Html5Qrcode("bookScanReader");
+            isScanning = true;
+            await html5QrCodeBook.start(
+                { facingMode: "environment" },
+                {
+                    fps: 15,
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                },
+                async (decodedText) => {
+                    if (!isValidISBN(decodedText)) {
+                        showToast("❌ Invalid barcode. Please scan a valid ISBN/EAN-13.", true);
+                        return;
+                    }
+                    await html5QrCodeBook.stop();
+                    isScanning = false;
+                    document.getElementById('newBookBarcode').value = decodedText;
+                    closeBookScanner();
+                    showToast("✅ Barcode scanned: " + decodedText);
+                },
+                (errorMessage) => { /* ignore */ }
+            );
+        } catch (err) {
+            showToast("Camera error: " + err, true);
+            closeBookScanner();
+        }
     }
 
     function closeBookScanner() {
+        if (html5QrCodeBook && isScanning) {
+            html5QrCodeBook.stop().catch(e => console.warn(e));
+            isScanning = false;
+        }
         document.getElementById('bookCameraContainer').style.display = 'none';
-        stopScanner();
     }
 
     async function processBarcodeForPOS(barcode) {
         const book = allBooks.find(b => b.barcode === barcode);
         if (book) {
-            // Open quantity modal to add to cart
             openQuantityModal(barcode, book.name, book.price);
         } else {
             const addNew = confirm("Book not found! Would you like to add it now?");
@@ -1025,7 +1003,7 @@
             <div class="header"><div class="shop-name">📚 SANA BOOK DEPOT 📚</div><div class="shop-details">Usman Bazar Havelian | +923235124366</div></div>
             <div class="info-row"><div><strong>Bill No:</strong> ${billNo}</div><div><strong>Date:</strong> ${dateTime}</div></div>
             <div class="customer-box"><p><strong>Customer:</strong> ${currentCustomer.name}</p><p><strong>Previous Balance:</strong> ${currentCustomer.previousBalance.toFixed(2)} PKR</p></div>
-            <table><thead><tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th></tr></thead><tbody>${itemsRows}</tbody></tr>
+            </table><thead><tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th></tr></thead><tbody>${itemsRows}</tbody></table>
             <div class="totals">
                 <p><strong>Subtotal:</strong> ${sub.toFixed(2)} PKR</p>
                 <p><strong>Discount (${discountPercent}%):</strong> ${discAmt.toFixed(2)} PKR</p>
@@ -1127,7 +1105,8 @@
                 if(card.dataset.page === 'posPage') loadAllBooks();
                 if(card.dataset.page === 'ledgerPage') loadLedger();
                 if(card.dataset.page === 'customersPage') { loadCustomers(); }
-                stopScanner();
+                closePOSScanner();
+                closeBookScanner();
             };
         });
         document.getElementById('openScanModalBtn').onclick = openPOSScanner;
