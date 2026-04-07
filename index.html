@@ -535,7 +535,7 @@
 <!-- Scan Barcode Modal for POS -->
 <div id="scanModal" class="modal">
     <div class="modal-content">
-        <h3><i class="fas fa-camera"></i> Scan Barcode</h3>
+        <h3><i class="fas fa-camera"></i> Scan Barcode (EAN-13 / ISBN)</h3>
         <div id="scanCameraContainer" class="camera-preview"></div>
         <button id="stopScanModalBtn" class="btn-outline" style="width: 100%;"><i class="fas fa-times"></i> Close Camera</button>
     </div>
@@ -604,9 +604,16 @@
         }
     }
 
-    // Helper to validate barcode (must be non-empty and contain only digits or alphanumeric, length > 3)
+    // Enhanced validation: EAN-13 (13 digits), EAN-8 (8 digits), Code128/Code39 (alphanumeric length >= 4)
     function isValidBarcode(code) {
-        return code && code.length >= 4 && /^[a-zA-Z0-9]+$/.test(code);
+        if (!code) return false;
+        // EAN-13: exactly 13 digits
+        if (/^\d{13}$/.test(code)) return true;
+        // EAN-8: exactly 8 digits
+        if (/^\d{8}$/.test(code)) return true;
+        // Code128/Code39: alphanumeric, length between 4 and 20
+        if (/^[a-zA-Z0-9]{4,20}$/.test(code)) return true;
+        return false;
     }
 
     window.addEventListener('firebaseReady', async () => {
@@ -720,7 +727,7 @@
         }
     }
 
-    // Enhanced POS scanner with validation and cooldown
+    // Enhanced POS scanner: optimized for EAN-13 (ISBN)
     async function openPOSScanner() {
         document.getElementById('scanModal').style.display = 'flex';
         const container = document.getElementById('scanCameraContainer');
@@ -741,7 +748,7 @@
             },
             locate: true,
             numOfWorkers: 4,
-            frequency: 5
+            frequency: 10  // increased frequency for better stability
         }, (err) => {
             if (err) { showToast("Camera error: " + err, true); closePOSScanner(); return; }
             Quagga.start();
@@ -749,14 +756,14 @@
             Quagga.onDetected(async (data) => {
                 if (scanCooldown) return;
                 const code = data.codeResult.code;
-                // Validate barcode format
+                // Accept only valid barcodes (especially EAN-13)
                 if (!isValidBarcode(code)) {
-                    showToast("❌ Barcode not clear or invalid. Please try again.", true);
+                    showToast("❌ Barcode not clear or invalid (expected EAN-13/ISBN). Please try again.", true);
                     scanCooldown = true;
                     setTimeout(() => { scanCooldown = false; }, 1500);
                     return;
                 }
-                // Prevent duplicate rapid scans of same code
+                // Prevent duplicate rapid scans
                 if (lastScannedCode === code) return;
                 lastScannedCode = code;
                 scanCooldown = true;
@@ -773,7 +780,7 @@
         stopScanner();
     }
 
-    // Enhanced book scanner (for adding new books) with same validation
+    // Enhanced book scanner (for adding new books) with same EAN-13 validation
     async function openBookScanner() {
         const container = document.getElementById('bookScannerView');
         if (!container) return;
@@ -795,7 +802,7 @@
             },
             locate: true,
             numOfWorkers: 4,
-            frequency: 5
+            frequency: 10
         }, (err) => {
             if (err) { showToast("Camera error: " + err, true); closeBookScanner(); return; }
             Quagga.start();
@@ -804,7 +811,7 @@
                 if (scanCooldown) return;
                 const code = data.codeResult.code;
                 if (!isValidBarcode(code)) {
-                    showToast("❌ Barcode not clear or invalid. Please try again.", true);
+                    showToast("❌ Barcode not clear or invalid (expected EAN-13/ISBN). Please try again.", true);
                     scanCooldown = true;
                     setTimeout(() => { scanCooldown = false; }, 1500);
                     return;
