@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=1.0, user-scalable=no">
     <title>Sana Book Depot - POS System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -51,6 +51,30 @@
         body {
             background: #f0f2f5;
             min-height: 100vh;
+        }
+        /* Invoice Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .invoice-print-area, .invoice-print-area * {
+                visibility: visible;
+            }
+            .invoice-print-area {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                padding: 20px;
+                background: white;
+            }
+            .no-print {
+                display: none !important;
+            }
+            @page {
+                size: 80mm auto;
+                margin: 5mm;
+            }
         }
         .top-shop-bar {
             background: linear-gradient(135deg, #1a2a36, #2c5364);
@@ -127,10 +151,6 @@
             background: #f5c542;
             animation: loadProgress 2s ease forwards;
         }
-        @keyframes loadProgress {
-            0% { width: 0%; }
-            100% { width: 100%; }
-        }
         .connection-status {
             position: fixed;
             top: 80px;
@@ -169,7 +189,6 @@
             margin: 0 auto;
             padding: 24px;
         }
-        /* Dashboard - 2 cards per row */
         .dashboard {
             display: flex;
             flex-direction: column;
@@ -233,9 +252,6 @@
             background: #e2e8f0;
             color: #1e293b;
         }
-        .back-btn:hover {
-            background: #cbd5e1;
-        }
         .card {
             background: white;
             border-radius: 28px;
@@ -271,10 +287,8 @@
             border: 1.5px solid #2c5364;
             color: #2c5364;
         }
-        .btn-outline:hover { background: #eef2ff; transform: translateY(-1px); }
-        .btn-success {
-            background: #27ae60;
-        }
+        .btn-outline:hover { background: #eef2ff; }
+        .btn-success { background: #27ae60; }
         .btn-success:hover { background: #1e8449; }
         input, select {
             width: 100%;
@@ -302,7 +316,6 @@
             padding: 12px 16px;
             cursor: pointer;
             border-bottom: 1px solid #e2e8f0;
-            transition: 0.2s;
         }
         .autocomplete-item:hover { background: #f1f5f9; }
         .bill-table {
@@ -366,7 +379,6 @@
             overflow: hidden;
             margin: 15px 0;
             min-height: 280px;
-            max-height: 350px;
             position: relative;
         }
         .camera-focus {
@@ -410,14 +422,18 @@
         .list-item {
             background: #f8fafc;
             border-radius: 16px;
-            padding: 12px;
-            margin-bottom: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
             border: 1px solid #e2e8f0;
             transition: 0.2s;
+            cursor: pointer;
         }
         .list-item:hover {
             background: #eef2ff;
             transform: translateX(4px);
+        }
+        .list-item strong {
+            font-size: 1rem;
         }
         .scanner-status {
             display: flex;
@@ -445,36 +461,40 @@
             padding: 15px;
             margin-bottom: 15px;
         }
-        .summary-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, #2c5364, #1a3a48);
-            color: white;
-            padding: 20px;
-            border-radius: 20px;
+        /* Professional Invoice Header */
+        .invoice-header {
             text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed #2c5364;
         }
-        .stat-card h4 {
-            font-size: 0.85rem;
-            opacity: 0.9;
-            margin-bottom: 8px;
-        }
-        .stat-card .stat-value {
+        .invoice-shop-name {
             font-size: 1.8rem;
-            font-weight: 800;
+            font-weight: 900;
+            color: #1a2a36;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        .invoice-shop-name i {
+            font-size: 1.8rem;
+            color: #2c5364;
+        }
+        .invoice-address {
+            color: #2c5364;
+            font-weight: 600;
+            margin-top: 8px;
+            font-size: 0.85rem;
         }
         @media (max-width: 700px) {
             .card-row { grid-template-columns: 1fr; gap: 16px; }
-            .dashboard { gap: 16px; }
             .top-shop-bar .shop-name { font-size: 1.2rem; }
             .connection-status { top: 70px; right: 10px; }
             .modal-content { padding: 20px; }
             .camera-preview { min-height: 220px; }
-            .summary-stats { grid-template-columns: 1fr; }
+            .invoice-shop-name { font-size: 1.2rem; }
+            .invoice-shop-name i { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -499,200 +519,55 @@
 </div>
 
 <div class="container" style="display: none;" id="appMain">
-    <!-- Dashboard Section - 2 cards per row -->
     <div id="dashboardSection">
         <div class="dashboard">
             <div class="card-row">
-                <div class="dashboard-card" data-page="posPage">
-                    <i class="fas fa-shopping-cart"></i>
-                    <h3>POS / Billing</h3>
-                    <p>Process customer bills, add items, apply discounts</p>
-                </div>
-                <div class="dashboard-card" data-page="inventoryPage">
-                    <i class="fas fa-book"></i>
-                    <h3>Books Database</h3>
-                    <p>Manage books, categories, stock levels</p>
-                </div>
+                <div class="dashboard-card" data-page="posPage"><i class="fas fa-shopping-cart"></i><h3>POS / Billing</h3><p>Process customer bills, add items, apply discounts</p></div>
+                <div class="dashboard-card" data-page="inventoryPage"><i class="fas fa-book"></i><h3>Books Database</h3><p>Manage books, categories, stock levels</p></div>
             </div>
             <div class="card-row">
-                <div class="dashboard-card" data-page="customersPage">
-                    <i class="fas fa-users"></i>
-                    <h3>Customers</h3>
-                    <p>Manage customer records and balances</p>
-                </div>
-                <div class="dashboard-card" data-page="ledgerPage">
-                    <i class="fas fa-receipt"></i>
-                    <h3>Bills Ledger</h3>
-                    <p>View all past bills and transactions</p>
-                </div>
+                <div class="dashboard-card" data-page="customersPage"><i class="fas fa-users"></i><h3>Customers</h3><p>Manage customer records and balances</p></div>
+                <div class="dashboard-card" data-page="ledgerPage"><i class="fas fa-receipt"></i><h3>Bills Ledger</h3><p>View all past bills and transactions</p></div>
             </div>
             <div class="card-row">
-                <div class="dashboard-card" data-page="stockPage">
-                    <i class="fas fa-chart-line"></i>
-                    <h3>Stock Management</h3>
-                    <p>Update stock levels manually or via barcode</p>
-                </div>
-                <div class="dashboard-card" data-page="btScannerPage">
-                    <i class="fab fa-bluetooth"></i>
-                    <h3>Bluetooth Scanner</h3>
-                    <p>Connect Bluetooth barcode scanner</p>
-                </div>
+                <div class="dashboard-card" data-page="stockPage"><i class="fas fa-chart-line"></i><h3>Stock Management</h3><p>Update stock levels manually or via barcode</p></div>
+                <div class="dashboard-card" data-page="btScannerPage"><i class="fab fa-bluetooth"></i><h3>Bluetooth Scanner</h3><p>Connect Bluetooth barcode scanner</p></div>
             </div>
             <div class="card-row">
-                <div class="dashboard-card" data-page="stockSummaryPage">
-                    <i class="fas fa-chart-bar"></i>
-                    <h3>Stock Summary</h3>
-                    <p>Advanced stock reports, low stock alerts, export PDF</p>
-                </div>
+                <div class="dashboard-card" data-page="stockSummaryPage"><i class="fas fa-chart-bar"></i><h3>Stock Summary</h3><p>Advanced stock reports, low stock alerts</p></div>
             </div>
         </div>
     </div>
 
     <!-- POS PAGE -->
-    <div id="posPage" class="section-page">
-        <div class="section-header">
-            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
-        </div>
-        <div class="card">
-            <h2><i class="fas fa-user-circle"></i> Customer Selection</h2>
-            <select id="customerSelect"></select>
-            <button id="newCustomerBtn"><i class="fas fa-user-plus"></i> New Customer</button>
-            <div style="margin-top: 12px; padding: 10px; background: #f8fafc; border-radius: 20px;">
-                Previous Balance: <strong id="prevBalanceDisplay" style="font-size: 1.2rem;">0.00 PKR</strong>
-            </div>
-        </div>
-        <div class="card">
-            <h2><i class="fas fa-search"></i> Add Items to Cart</h2>
-            <button id="openScanModalBtn" style="width: 100%;"><i class="fas fa-camera"></i> Scan Barcode</button>
-            <div class="search-container" style="margin-top: 12px;">
-                <input type="text" id="searchItemInput" placeholder="🔍 Search book by name..." autocomplete="off">
-                <div id="autocompleteResults" class="autocomplete-list" style="display: none;"></div>
-            </div>
-        </div>
-        <div class="card">
-            <h2><i class="fas fa-shopping-cart"></i> Current Cart</h2>
-            <div style="overflow-x: auto;">
-                <table class="bill-table">
-                    <thead><tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th><th></th></tr></thead>
-                    <tbody id="billItemsBody"></tbody>
-                </table>
-            </div>
-            <div style="margin-top: 16px;">
-                <div class="totals-row"><span>Total Bill:</span><span id="totalBillSpan">0.00 PKR</span></div>
-                <div class="totals-row"><span>Discount %:</span><input type="number" id="discountPercent" value="0" step="any" style="width: 100px;"></div>
-                <div class="totals-row"><span>Discount Amount:</span><span id="discountAmountSpan">0.00 PKR</span></div>
-                <div class="totals-row"><span>Previous Balance:</span><span id="prevBalSpan">0.00 PKR</span></div>
-                <div class="totals-row grand-total"><span>Grand Total:</span><span id="grandTotalSpan">0.00 PKR</span></div>
-                <div class="totals-row"><span>Amount Paid:</span><input type="number" id="paidAmount" value="0" step="any" style="width: 130px;"></div>
-                <div class="totals-row"><span>Balance:</span><span id="balanceSpan">0.00 PKR</span></div>
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px;">
-                <button id="generatePdfBtn"><i class="fas fa-file-pdf"></i> Save Bill & PDF</button>
-                <button id="bluetoothPrintBtn"><i class="fab fa-bluetooth"></i> Print</button>
-                <button id="whatsappBtn"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-            </div>
-        </div>
+    <div id="posPage" class="section-page"><div class="section-header"><button class="back-btn"><i class="fas fa-arrow-left"></i> Back</button></div>
+        <div class="card"><h2><i class="fas fa-user-circle"></i> Customer Selection</h2><select id="customerSelect"></select><button id="newCustomerBtn"><i class="fas fa-user-plus"></i> New Customer</button><div style="margin-top:12px;padding:10px;background:#f8fafc;border-radius:20px;">Previous Balance: <strong id="prevBalanceDisplay">0.00 PKR</strong></div></div>
+        <div class="card"><h2><i class="fas fa-search"></i> Add Items to Cart</h2><button id="openScanModalBtn" style="width:100%;"><i class="fas fa-camera"></i> Scan Barcode</button><div class="search-container" style="margin-top:12px;"><input type="text" id="searchItemInput" placeholder="🔍 Search book by name..."><div id="autocompleteResults" class="autocomplete-list"></div></div></div>
+        <div class="card"><h2><i class="fas fa-shopping-cart"></i> Current Cart</h2><div style="overflow-x:auto;"><table class="bill-table"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th><th></th></tr></thead><tbody id="billItemsBody"></tbody></table></div>
+        <div><div class="totals-row"><span>Total Bill:</span><span id="totalBillSpan">0.00 PKR</span></div><div class="totals-row"><span>Discount %:</span><input type="number" id="discountPercent" value="0" step="any" style="width:100px;"></div><div class="totals-row"><span>Discount Amt:</span><span id="discountAmountSpan">0.00 PKR</span></div><div class="totals-row"><span>Previous Balance:</span><span id="prevBalSpan">0.00 PKR</span></div><div class="totals-row grand-total"><span>Grand Total:</span><span id="grandTotalSpan">0.00 PKR</span></div><div class="totals-row"><span>Amount Paid:</span><input type="number" id="paidAmount" value="0" style="width:130px;"></div><div class="totals-row"><span>Balance:</span><span id="balanceSpan">0.00 PKR</span></div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;"><button id="generatePdfBtn"><i class="fas fa-file-pdf"></i> Save Bill & PDF</button><button id="bluetoothPrintBtn"><i class="fab fa-bluetooth"></i> Print</button><button id="whatsappBtn"><i class="fab fa-whatsapp"></i> WhatsApp</button></div></div>
     </div>
 
-    <!-- BOOKS DATABASE PAGE -->
-    <div id="inventoryPage" class="section-page">
-        <div class="section-header">
-            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
-        </div>
-        <div class="card">
-            <h2><i class="fas fa-book"></i> Books Database</h2>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <select id="categoryFilter" style="flex:1;"></select>
-                <button id="addCategoryBtn" class="btn-outline"><i class="fas fa-plus"></i> Add Category</button>
-            </div>
-            <button id="openAddItemModalBtn"><i class="fas fa-plus-circle"></i> Add New Book</button>
-            <div id="inventoryList" style="margin-top:16px; max-height: 500px; overflow-y: auto;"></div>
-        </div>
-    </div>
-
-    <!-- CUSTOMERS PAGE -->
-    <div id="customersPage" class="section-page">
-        <div class="section-header">
-            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
-        </div>
-        <div class="card">
-            <h2><i class="fas fa-address-card"></i> Customer Management</h2>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="customerSearchInput" placeholder="🔍 Search customer..." style="flex:1;">
-                <button id="addCustomerPageBtn"><i class="fas fa-user-plus"></i> Add</button>
-            </div>
-            <div id="customersList" style="margin-top:16px;"></div>
-        </div>
-    </div>
-
-    <!-- LEDGER PAGE -->
-    <div id="ledgerPage" class="section-page">
-        <div class="section-header">
-            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
-        </div>
-        <div class="card">
-            <h2><i class="fas fa-history"></i> Bills Ledger</h2>
-            <button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
-            <div id="ledgerList" style="margin-top:16px;"></div>
-        </div>
-    </div>
-
-    <!-- STOCK MANAGEMENT PAGE -->
-    <div id="stockPage" class="section-page">
-        <div class="section-header">
-            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
-        </div>
-        <div class="card">
-            <h2><i class="fas fa-chart-line"></i> Stock Management</h2>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
-                <button id="scanStockBarcodeBtn"><i class="fas fa-camera"></i> Scan Barcode to Update Stock</button>
-                <button id="manualStockUpdateBtn" class="btn-outline"><i class="fas fa-edit"></i> Manual Stock Update</button>
-            </div>
-            <div id="stockItemList" style="max-height: 400px; overflow-y: auto;"></div>
-        </div>
-    </div>
-
-    <!-- STOCK SUMMARY PAGE -->
-    <div id="stockSummaryPage" class="section-page">
-        <div class="section-header">
-            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
-            <button id="exportLowStockPdfBtn" class="btn-success"><i class="fas fa-file-pdf"></i> Export Low Stock to PDF</button>
-        </div>
-        <div class="card">
-            <h2><i class="fas fa-chart-bar"></i> Advanced Stock Summary</h2>
-            <div id="stockSummaryReports"></div>
-        </div>
-    </div>
-
-    <!-- BLUETOOTH SCANNER PAGE -->
-    <div id="btScannerPage" class="section-page">
-        <div class="section-header">
-            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
-        </div>
-        <div class="card">
-            <h2><i class="fab fa-bluetooth"></i> Bluetooth Barcode Scanner</h2>
-            <div class="scanner-status">
-                <div class="scanner-status-dot" id="btScannerStatusDot"></div>
-                <span id="btScannerStatusText">Disconnected</span>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button id="connectBtScannerBtn"><i class="fab fa-bluetooth"></i> Connect Scanner</button>
-                <button id="disconnectBtScannerBtn" class="btn-outline"><i class="fas fa-times"></i> Disconnect</button>
-            </div>
-            <div id="btScannerLog" style="margin-top: 15px; max-height: 300px; overflow-y: auto; background: #f8fafc; border-radius: 20px; padding: 12px;"></div>
-        </div>
-    </div>
+    <div id="inventoryPage" class="section-page"><div class="section-header"><button class="back-btn"><i class="fas fa-arrow-left"></i> Back</button></div><div class="card"><h2><i class="fas fa-book"></i> Books Database</h2><div style="display:flex;gap:10px;margin-bottom:15px;"><select id="categoryFilter" style="flex:1;"></select><button id="addCategoryBtn" class="btn-outline"><i class="fas fa-plus"></i> Add Category</button></div><button id="openAddItemModalBtn"><i class="fas fa-plus-circle"></i> Add New Book</button><div id="inventoryList" style="margin-top:16px;max-height:500px;overflow-y:auto;"></div></div></div>
+    <div id="customersPage" class="section-page"><div class="section-header"><button class="back-btn"><i class="fas fa-arrow-left"></i> Back</button></div><div class="card"><h2><i class="fas fa-address-card"></i> Customer Management</h2><div style="display:flex;gap:10px;margin-bottom:15px;"><input type="text" id="customerSearchInput" placeholder="🔍 Search customer..." style="flex:1;"><button id="addCustomerPageBtn"><i class="fas fa-user-plus"></i> Add</button></div><div id="customersList" style="margin-top:16px;"></div></div></div>
+    
+    <!-- ENHANCED LEDGER PAGE - Full Bill Details with Original Date -->
+    <div id="ledgerPage" class="section-page"><div class="section-header"><button class="back-btn"><i class="fas fa-arrow-left"></i> Back</button><button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Refresh</button></div><div class="card"><h2><i class="fas fa-history"></i> Bills Ledger</h2><div id="ledgerList" style="margin-top:16px;max-height:500px;overflow-y:auto;"></div></div></div>
+    
+    <div id="stockPage" class="section-page"><div class="section-header"><button class="back-btn"><i class="fas fa-arrow-left"></i> Back</button></div><div class="card"><h2><i class="fas fa-chart-line"></i> Stock Management</h2><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;"><button id="scanStockBarcodeBtn"><i class="fas fa-camera"></i> Scan Barcode</button><button id="manualStockUpdateBtn" class="btn-outline"><i class="fas fa-edit"></i> Manual Update</button></div><div id="stockItemList" style="max-height:400px;overflow-y:auto;"></div></div></div>
+    <div id="stockSummaryPage" class="section-page"><div class="section-header"><button class="back-btn"><i class="fas fa-arrow-left"></i> Back</button><button id="exportLowStockPdfBtn" class="btn-success"><i class="fas fa-file-pdf"></i> Export Low Stock PDF</button></div><div class="card"><h2><i class="fas fa-chart-bar"></i> Stock Summary</h2><div id="stockSummaryReports"></div></div></div>
+    <div id="btScannerPage" class="section-page"><div class="section-header"><button class="back-btn"><i class="fas fa-arrow-left"></i> Back</button></div><div class="card"><h2><i class="fab fa-bluetooth"></i> Bluetooth Scanner</h2><div class="scanner-status"><div class="scanner-status-dot" id="btScannerStatusDot"></div><span id="btScannerStatusText">Disconnected</span></div><div style="display:flex;gap:10px;"><button id="connectBtScannerBtn"><i class="fab fa-bluetooth"></i> Connect</button><button id="disconnectBtScannerBtn" class="btn-outline"><i class="fas fa-times"></i> Disconnect</button></div><div id="btScannerLog" style="margin-top:15px;max-height:300px;overflow-y:auto;background:#f8fafc;border-radius:20px;padding:12px;"></div></div></div>
 </div>
 
 <!-- Modals -->
-<div id="newCustomerModal" class="modal"><div class="modal-content"><h3><i class="fas fa-user-plus"></i> Add New Customer</h3><input type="text" id="newCustomerName" placeholder="Customer Name *"><div class="flex-btns"><button id="cancelCustomerBtn">Cancel</button><button id="confirmCustomerBtn">Save</button></div></div></div>
+<div id="newCustomerModal" class="modal"><div class="modal-content"><h3><i class="fas fa-user-plus"></i> Add Customer</h3><input type="text" id="newCustomerName" placeholder="Name *"><div class="flex-btns"><button id="cancelCustomerBtn">Cancel</button><button id="confirmCustomerBtn">Save</button></div></div></div>
 <div id="paymentModal" class="modal"><div class="modal-content"><h3><i class="fas fa-money-bill-wave"></i> Record Payment</h3><p><strong>Customer:</strong> <span id="paymentCustomerName"></span></p><p><strong>Balance:</strong> <span id="paymentCurrentBalance"></span> PKR</p><input type="number" id="paymentAmount" placeholder="Amount"><div class="flex-btns"><button id="cancelPaymentBtn">Cancel</button><button id="confirmPaymentBtn">Record</button></div></div></div>
-<div id="scanModal" class="modal"><div class="modal-content"><h3><i class="fas fa-camera"></i> Scan Barcode</h3><div class="camera-preview" style="position: relative;"><div id="scanCameraContainer"></div><div class="camera-focus"></div></div><button id="stopScanModalBtn" class="btn-outline">Close</button></div></div>
-<div id="quantityModal" class="modal"><div class="modal-content"><h3><i class="fas fa-cart-plus"></i> Add to Cart</h3><div><strong id="qtyItemName"></strong></div><div>Price: <span id="qtyItemPrice"></span> PKR</div><label>Quantity:</label><input type="number" id="qtyInput" value="1" min="1"><div class="flex-btns"><button id="cancelQtyBtn">Cancel</button><button id="confirmQtyBtn">Add</button></div></div></div>
-<div id="addItemModal" class="modal"><div class="modal-content"><h3><i class="fas fa-book"></i> Add New Book</h3><div style="display: flex; gap: 10px;"><input type="text" id="newItemBarcode" placeholder="Barcode *" style="flex:1;"><button id="scanItemBarcodeBtn" class="btn-outline"><i class="fas fa-camera"></i> Scan</button></div><div id="itemCameraContainer" style="display:none;"><div id="itemScannerView" class="camera-preview"></div><button id="stopItemCameraBtn" class="btn-outline">Stop</button></div><select id="newItemCategory"></select><input type="text" id="newItemName" placeholder="Book Name *"><input type="number" id="newItemPrice" placeholder="Price (PKR) *" step="any"><input type="number" id="newItemStock" placeholder="Initial Stock" value="0"><div class="flex-btns"><button id="cancelAddItemBtn">Cancel</button><button id="saveItemBtn">Save</button></div></div></div>
-<div id="addCategoryModal" class="modal"><div class="modal-content"><h3><i class="fas fa-tag"></i> Add Category</h3><input type="text" id="newCategoryName" placeholder="Category Name"><div class="flex-btns"><button id="cancelCategoryBtn">Cancel</button><button id="confirmCategoryBtn">Save</button></div></div></div>
-<div id="stockUpdateModal" class="modal"><div class="modal-content"><h3><i class="fas fa-boxes"></i> Update Stock</h3><p><strong>Item:</strong> <span id="stockItemName"></span></p><p><strong>Current Stock:</strong> <span id="currentStockQty"></span></p><input type="number" id="newStockQty" placeholder="New Quantity"><div class="flex-btns"><button id="cancelStockBtn">Cancel</button><button id="confirmStockBtn">Update</button></div></div></div>
-<div id="manualStockUpdateModal" class="modal"><div class="modal-content"><h3><i class="fas fa-edit"></i> Manual Stock Update</h3><input type="text" id="manualBarcode" placeholder="Book Barcode *"><input type="text" id="manualItemName" placeholder="Book Name" readonly style="background:#f5f5f5;"><input type="number" id="manualNewStock" placeholder="New Quantity *" step="1"><div class="flex-btns"><button id="cancelManualBtn">Cancel</button><button id="confirmManualBtn">Update Stock</button></div></div></div>
+<div id="scanModal" class="modal"><div class="modal-content"><h3><i class="fas fa-camera"></i> Scan Barcode</h3><div class="camera-preview" style="position:relative;"><div id="scanCameraContainer"></div><div class="camera-focus"></div></div><button id="stopScanModalBtn" class="btn-outline">Close</button></div></div>
+<div id="quantityModal" class="modal"><div class="modal-content"><h3>Add to Cart</h3><div><strong id="qtyItemName"></strong></div><div>Price: <span id="qtyItemPrice"></span> PKR</div><label>Qty:</label><input type="number" id="qtyInput" value="1" min="1"><div class="flex-btns"><button id="cancelQtyBtn">Cancel</button><button id="confirmQtyBtn">Add</button></div></div></div>
+<div id="addItemModal" class="modal"><div class="modal-content"><h3>Add New Book</h3><div style="display:flex;gap:10px;"><input type="text" id="newItemBarcode" placeholder="Barcode *" style="flex:1;"><button id="scanItemBarcodeBtn" class="btn-outline"><i class="fas fa-camera"></i> Scan</button></div><div id="itemCameraContainer" style="display:none;"><div id="itemScannerView" class="camera-preview"></div><button id="stopItemCameraBtn" class="btn-outline">Stop</button></div><select id="newItemCategory"></select><input type="text" id="newItemName" placeholder="Book Name *"><input type="number" id="newItemPrice" placeholder="Price (PKR) *" step="any"><input type="number" id="newItemStock" placeholder="Initial Stock" value="0"><div class="flex-btns"><button id="cancelAddItemBtn">Cancel</button><button id="saveItemBtn">Save</button></div></div></div>
+<div id="addCategoryModal" class="modal"><div class="modal-content"><h3>Add Category</h3><input type="text" id="newCategoryName" placeholder="Category Name"><div class="flex-btns"><button id="cancelCategoryBtn">Cancel</button><button id="confirmCategoryBtn">Save</button></div></div></div>
+<div id="stockUpdateModal" class="modal"><div class="modal-content"><h3>Update Stock</h3><p><strong id="stockItemName"></strong></p><p>Current Stock: <span id="currentStockQty"></span></p><input type="number" id="newStockQty" placeholder="New Quantity"><div class="flex-btns"><button id="cancelStockBtn">Cancel</button><button id="confirmStockBtn">Update</button></div></div></div>
+<div id="manualStockUpdateModal" class="modal"><div class="modal-content"><h3>Manual Stock Update</h3><input type="text" id="manualBarcode" placeholder="Book Barcode *"><input type="text" id="manualItemName" placeholder="Book Name" readonly style="background:#f5f5f5;"><input type="number" id="manualNewStock" placeholder="New Quantity *" step="1"><div class="flex-btns"><button id="cancelManualBtn">Cancel</button><button id="confirmManualBtn">Update</button></div></div></div>
 <div id="toastMsg" class="toast"></div>
 
 <script>
@@ -718,35 +593,10 @@
     function stopScanner() { if (activeScanner) { Quagga.stop(); activeScanner = null; } }
     function isValidBarcode(code) { return code && (/^\d{13}$/.test(code) || /^\d{8}$/.test(code) || /^[a-zA-Z0-9]{4,20}$/.test(code)); }
 
-    // Firebase data loading
-    async function loadAllItems() {
-        const snapshot = await getDocs(collection(window.db, "inventory"));
-        allItems = [];
-        snapshot.forEach(docSnap => { allItems.push({ id: docSnap.id, ...docSnap.data() }); });
-    }
-    async function loadCategories() {
-        const snapshot = await getDocs(collection(window.db, "categories"));
-        allCategories = [];
-        snapshot.forEach(docSnap => { allCategories.push({ id: docSnap.id, name: docSnap.data().name }); });
-        if (allCategories.length === 0) {
-            const defaults = ["Books", "Copies", "Registers", "Pencils", "Sharpeners", "Ball Points"];
-            for (let cat of defaults) await addDoc(collection(window.db, "categories"), { name: cat });
-            await loadCategories();
-        }
-        updateCategoryDropdowns();
-    }
-    function updateCategoryDropdowns() {
-        const select = document.getElementById('newItemCategory');
-        if (select) {
-            select.innerHTML = '<option value="">Select Category</option>';
-            allCategories.forEach(cat => { select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`; });
-        }
-        const filter = document.getElementById('categoryFilter');
-        if (filter) {
-            filter.innerHTML = '<option value="">All Categories</option>';
-            allCategories.forEach(cat => { filter.innerHTML += `<option value="${cat.id}">${cat.name}</option>`; });
-        }
-    }
+    async function loadAllItems() { const snapshot = await getDocs(collection(window.db, "inventory")); allItems = []; snapshot.forEach(docSnap => { allItems.push({ id: docSnap.id, ...docSnap.data() }); }); }
+    async function loadCategories() { const snapshot = await getDocs(collection(window.db, "categories")); allCategories = []; snapshot.forEach(docSnap => { allCategories.push({ id: docSnap.id, name: docSnap.data().name }); }); if (allCategories.length === 0) { const defaults = ["Books", "Copies", "Registers", "Pencils", "Sharpeners", "Ball Points"]; for (let cat of defaults) await addDoc(collection(window.db, "categories"), { name: cat }); await loadCategories(); } updateCategoryDropdowns(); }
+    function updateCategoryDropdowns() { const select = document.getElementById('newItemCategory'); if (select) { select.innerHTML = '<option value="">Select Category</option>'; allCategories.forEach(cat => { select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`; }); } const filter = document.getElementById('categoryFilter'); if (filter) { filter.innerHTML = '<option value="">All Categories</option>'; allCategories.forEach(cat => { filter.innerHTML += `<option value="${cat.id}">${cat.name}</option>`; }); } }
+    
     async function loadCustomers() {
         const snapshot = await getDocs(collection(window.db, "customers"));
         allCustomers = [];
@@ -789,15 +639,203 @@
         await loadCustomers();
         if (currentCustomer.id === id) { currentCustomer.previousBalance = newBalance; computeTotals(); }
     }
+
+    // ENHANCED LEDGER VIEW - Professional Invoice with Original Date
     async function loadLedger() {
         const q = query(collection(window.db, "ledger"), orderBy("timestamp", "desc"));
         const snapshot = await getDocs(q);
         const container = document.getElementById('ledgerList');
         if(container) container.innerHTML = '';
-        snapshot.forEach(docSnap => { const data = docSnap.data(); container.innerHTML += `<div class="list-item" onclick="alert('Bill: ${JSON.stringify(data)}')"><i class="fas fa-receipt"></i> <strong>${data.customerName}</strong><br>${new Date(data.timestamp).toLocaleString()}<br>Total: ${data.grandTotal} PKR</div>`; });
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const dateObj = new Date(data.timestamp);
+            const formattedDate = dateObj.toLocaleString();
+            container.innerHTML += `
+                <div class="list-item" data-bill='${JSON.stringify(data)}'>
+                    <i class="fas fa-receipt"></i> <strong>${data.customerName}</strong><br>
+                    <small><i class="far fa-calendar-alt"></i> ${formattedDate}</small><br>
+                    <strong>Total: ${data.grandTotal} PKR</strong>
+                </div>
+            `;
+        });
+        document.querySelectorAll('#ledgerList .list-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const billData = JSON.parse(el.getAttribute('data-bill'));
+                viewProfessionalInvoice(billData);
+            });
+        });
     }
 
-    // POS Functions with stock deduction
+    // Professional Invoice Generation with Book Icons and Proper Formatting for POS Machine
+    function viewProfessionalInvoice(bill) {
+        const dateObj = new Date(bill.timestamp);
+        const formattedDate = dateObj.toLocaleString();
+        let itemsRows = '';
+        bill.items.forEach(item => {
+            itemsRows += `
+                <tr style="border-bottom:1px solid #ddd;">
+                    <td style="padding:8px; text-align:left;">${item.name}</td>
+                    <td style="padding:8px; text-align:center;">${item.quantity}</td>
+                    <td style="padding:8px; text-align:right;">${item.price.toFixed(2)}</td>
+                    <td style="padding:8px; text-align:right;">${(item.price * item.quantity).toFixed(2)}</td>
+                </tr>
+            `;
+        });
+        
+        const invoiceHTML = `<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Invoice - Sana Book Depot</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: 'Inter', Arial, sans-serif;
+                    background: white;
+                    padding: 15px;
+                }
+                .invoice-container {
+                    max-width: 100%;
+                    margin: 0 auto;
+                    background: white;
+                }
+                .invoice-header {
+                    text-align: center;
+                    margin-bottom: 20px;
+                    padding-bottom: 15px;
+                    border-bottom: 2px dashed #2c5364;
+                }
+                .invoice-shop-name {
+                    font-size: 1.6rem;
+                    font-weight: 900;
+                    color: #1a2a36;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 12px;
+                }
+                .invoice-shop-name i {
+                    font-size: 1.6rem;
+                    color: #2c5364;
+                }
+                .invoice-address {
+                    color: #2c5364;
+                    font-weight: 600;
+                    margin-top: 8px;
+                    font-size: 0.8rem;
+                }
+                .invoice-details {
+                    margin-bottom: 15px;
+                    padding: 10px;
+                    background: #f8fafc;
+                    border-radius: 12px;
+                    font-size: 0.85rem;
+                }
+                .invoice-details p {
+                    margin: 5px 0;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 15px;
+                    font-size: 0.8rem;
+                }
+                th {
+                    background-color: #2c5364;
+                    color: white;
+                    padding: 8px;
+                    text-align: left;
+                }
+                td {
+                    padding: 6px;
+                }
+                .totals {
+                    text-align: right;
+                    margin-top: 15px;
+                    padding-top: 10px;
+                    border-top: 1px solid #ddd;
+                    font-size: 0.85rem;
+                }
+                .grand-total {
+                    font-size: 1rem;
+                    font-weight: 800;
+                    color: #2c5364;
+                    margin-top: 8px;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 20px;
+                    padding-top: 12px;
+                    border-top: 1px dashed #ccc;
+                    font-size: 0.7rem;
+                    color: #666;
+                }
+                @media print {
+                    body { margin: 0; padding: 0; }
+                    .no-print { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="invoice-container">
+                <div class="invoice-header">
+                    <div class="invoice-shop-name">
+                        <i class="fas fa-book"></i>
+                        <span>SANA BOOK DEPOT</span>
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="invoice-address">Usman Bazar Havelian | +923235124366</div>
+                </div>
+                <div class="invoice-details">
+                    <p><strong>Bill No:</strong> ${bill.timestamp.slice(-8)}</p>
+                    <p><strong>Date:</strong> ${formattedDate}</p>
+                    <p><strong>Customer:</strong> ${bill.customerName}</p>
+                    <p><strong>Previous Balance:</strong> ${bill.previousBalance.toFixed(2)} PKR</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th style="text-align:center;">Qty</th>
+                            <th style="text-align:right;">Price</th>
+                            <th style="text-align:right;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsRows}</tbody>
+                </table>
+                <div class="totals">
+                    <p><strong>Subtotal:</strong> ${bill.subtotal.toFixed(2)} PKR</p>
+                    <p><strong>Discount (${bill.discountPercent}%):</strong> ${bill.discountAmount.toFixed(2)} PKR</p>
+                    <p><strong>Total After Discount:</strong> ${(bill.subtotal - bill.discountAmount).toFixed(2)} PKR</p>
+                    <p><strong>Previous Balance:</strong> ${bill.previousBalance.toFixed(2)} PKR</p>
+                    <p class="grand-total"><strong>Grand Total:</strong> ${bill.grandTotal.toFixed(2)} PKR</p>
+                    <p><strong>Amount Paid:</strong> ${bill.amountPaid.toFixed(2)} PKR</p>
+                    <p><strong>Balance Due:</strong> ${bill.balanceDue.toFixed(2)} PKR</p>
+                </div>
+                <div class="footer">
+                    <p>Thank you for shopping with us!</p>
+                    <p>This is a computer generated invoice</p>
+                </div>
+            </div>
+            <div class="no-print" style="text-align:center; margin-top:15px;">
+                <button onclick="window.print()" style="background:#2c5364; color:white; padding:10px 20px; border:none; border-radius:8px; margin:5px;"><i class="fas fa-print"></i> Print Invoice</button>
+                <button onclick="window.close()" style="background:#e2e8f0; color:#1e293b; padding:10px 20px; border:none; border-radius:8px; margin:5px;">Close</button>
+            </div>
+            <script>
+                // Auto-trigger print for POS machine
+                setTimeout(function() {
+                    window.print();
+                }, 300);
+            <\/script>
+        </body>
+        </html>`;
+        
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(invoiceHTML);
+        printWindow.document.close();
+    }
+
+    // POS Functions (simplified but complete)
     function renderBillTable() {
         const tbody = document.getElementById('billItemsBody');
         if(!tbody) return;
@@ -829,6 +867,7 @@
         document.getElementById('grandTotalSpan').innerText = grand.toFixed(2) + " PKR";
         document.getElementById('balanceSpan').innerText = balance.toFixed(2) + " PKR";
     }
+    
     async function generateAndSaveBill() {
         if(!currentCustomer.id) { showToast("Select customer",true); return; }
         if(billItems.length===0) { showToast("No items",true); return; }
@@ -844,34 +883,20 @@
             if (newBalance < 0) newBalance = 0;
             let grand = currentCustomer.previousBalance + currentPurchaseAfterDisc;
             let balanceDue = grand - paid;
-            
             const ledgerData = { customerId: currentCustomer.id, customerName: currentCustomer.name, items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), subtotal:sub, discountPercent, discountAmount:discAmt, previousBalance:currentCustomer.previousBalance, grandTotal:grand, amountPaid:paid, balanceDue:balanceDue, timestamp: new Date().toISOString() };
             await addDoc(collection(window.db, "ledger"), ledgerData);
             await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
             currentCustomer.previousBalance = newBalance;
-            
-            for (let item of billItems) {
-                const inventoryRef = doc(window.db, "inventory", item.barcode);
-                const invSnap = await getDoc(inventoryRef);
-                if (invSnap.exists()) {
-                    const currentStock = invSnap.data().stock || 0;
-                    await updateDoc(inventoryRef, { stock: Math.max(0, currentStock - item.quantity) });
-                }
-            }
-            await loadAllItems();
-            await loadInventoryList();
-            await generateStockSummary();
-            
-            const billHTML = `<div style="text-align:center"><h2>SANA BOOK DEPOT</h2><p>Usman Bazar Havelian | +923235124366</p></div><p>Customer: ${currentCustomer.name}</p><p>Date: ${new Date().toLocaleString()}</p><table border="1">${billItems.map(i=>`<tr><td>${i.name}</td><td>${i.quantity}</td><td>${i.price}</td><td>${(i.price*i.quantity).toFixed(2)}</td></tr>`).join('')}</table><p>Grand Total: ${grand.toFixed(2)} PKR</p><p>Thank you!</p>`;
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(billHTML);
-            printWindow.document.close();
-            showToast("✅ Bill saved & stock updated");
+            for (let item of billItems) { const inventoryRef = doc(window.db, "inventory", item.barcode); const invSnap = await getDoc(inventoryRef); if (invSnap.exists()) { const currentStock = invSnap.data().stock || 0; await updateDoc(inventoryRef, { stock: Math.max(0, currentStock - item.quantity) }); } }
+            await loadAllItems(); await loadInventoryList();
+            viewProfessionalInvoice(ledgerData);
+            showToast("✅ Bill saved & invoice generated");
             billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent = 0; computeTotals(); 
             await loadLedger(); await loadCustomers();
         } catch(e) { showToast("Error: "+e.message, true); }
         finally { btn.innerHTML = '<i class="fas fa-file-pdf"></i> Save Bill & PDF'; btn.disabled = false; }
     }
+    
     function openQuantityModal(barcode, name, price) {
         const existing = billItems.find(i => i.barcode === barcode);
         document.getElementById('qtyItemName').innerText = name;
@@ -908,244 +933,32 @@
         if(stockContainer) stockContainer.innerHTML = allItems.map(item => `<div class="list-item"><i class="fas fa-box"></i> <strong>${item.name}</strong><br>Barcode: ${item.id}<br>Stock: ${item.stock||0}<button class="btn-outline stock-update-btn" data-barcode="${item.id}" data-name="${item.name}" data-stock="${item.stock||0}" style="margin-top:6px;"><i class="fas fa-edit"></i> Update Stock</button></div>`).join('');
         document.querySelectorAll('.stock-update-btn').forEach(btn => btn.addEventListener('click', () => openStockUpdateByBarcode(btn.dataset.barcode, btn.dataset.name, parseInt(btn.dataset.stock))));
     }
-    async function addNewItem(barcode, name, categoryId, price, stock) {
-        await setDoc(doc(window.db, "inventory", barcode), { name, category: categoryId, price, stock: parseInt(stock) || 0 });
-        await loadAllItems();
-        loadInventoryList();
-    }
-    async function updateStock(barcode, newQty) {
-        await updateDoc(doc(window.db, "inventory", barcode), { stock: parseInt(newQty) });
-        await loadAllItems();
-        loadInventoryList();
-        generateStockSummary();
-    }
-    function openStockUpdateByBarcode(barcode, name, currentStock) {
-        document.getElementById('stockItemName').innerText = name;
-        document.getElementById('currentStockQty').innerText = currentStock;
-        document.getElementById('newStockQty').value = currentStock;
-        document.getElementById('stockUpdateModal').style.display = 'flex';
-        window.stockUpdateBarcode = barcode;
-    }
-    
-    function openManualStockUpdate() {
-        document.getElementById('manualBarcode').value = '';
-        document.getElementById('manualItemName').value = '';
-        document.getElementById('manualNewStock').value = '';
-        document.getElementById('manualStockUpdateModal').style.display = 'flex';
-    }
-    async function fetchItemForManualUpdate() {
-        const barcode = document.getElementById('manualBarcode').value.trim();
-        if (!barcode) { showToast("Enter barcode", true); return; }
-        const item = allItems.find(i => i.id === barcode);
-        if (item) {
-            document.getElementById('manualItemName').value = item.name;
-            document.getElementById('manualNewStock').value = item.stock || 0;
-        } else {
-            showToast("Book not found", true);
-            document.getElementById('manualItemName').value = '';
-        }
-    }
-    async function confirmManualUpdate() {
-        const barcode = document.getElementById('manualBarcode').value.trim();
-        const newStock = parseInt(document.getElementById('manualNewStock').value);
-        if (!barcode || isNaN(newStock)) { showToast("Valid barcode and quantity required", true); return; }
-        const item = allItems.find(i => i.id === barcode);
-        if (!item) { showToast("Book not found", true); return; }
-        await updateStock(barcode, newStock);
-        document.getElementById('manualStockUpdateModal').style.display = 'none';
-        showToast(`Stock updated to ${newStock}`);
-    }
+    async function updateStock(barcode, newQty) { await updateDoc(doc(window.db, "inventory", barcode), { stock: parseInt(newQty) }); await loadAllItems(); loadInventoryList(); generateStockSummary(); }
+    function openStockUpdateByBarcode(barcode, name, currentStock) { document.getElementById('stockItemName').innerText = name; document.getElementById('currentStockQty').innerText = currentStock; document.getElementById('newStockQty').value = currentStock; document.getElementById('stockUpdateModal').style.display = 'flex'; window.stockUpdateBarcode = barcode; }
+    function openManualStockUpdate() { document.getElementById('manualBarcode').value = ''; document.getElementById('manualItemName').value = ''; document.getElementById('manualNewStock').value = ''; document.getElementById('manualStockUpdateModal').style.display = 'flex'; }
+    async function fetchItemForManualUpdate() { const barcode = document.getElementById('manualBarcode').value.trim(); if (!barcode) { showToast("Enter barcode", true); return; } const item = allItems.find(i => i.id === barcode); if (item) { document.getElementById('manualItemName').value = item.name; document.getElementById('manualNewStock').value = item.stock || 0; } else { showToast("Book not found", true); document.getElementById('manualItemName').value = ''; } }
+    async function confirmManualUpdate() { const barcode = document.getElementById('manualBarcode').value.trim(); const newStock = parseInt(document.getElementById('manualNewStock').value); if (!barcode || isNaN(newStock)) { showToast("Valid barcode and quantity required", true); return; } const item = allItems.find(i => i.id === barcode); if (!item) { showToast("Book not found", true); return; } await updateStock(barcode, newStock); document.getElementById('manualStockUpdateModal').style.display = 'none'; showToast(`Stock updated to ${newStock}`); }
+    async function generateStockSummary() { await loadAllItems(); const totalValue = allItems.reduce((sum, i) => sum + (i.price * (i.stock||0)), 0); const lowStockItems = allItems.filter(i => (i.stock||0) < 5); const outOfStock = allItems.filter(i => (i.stock||0) === 0); const totalItems = allItems.length; const totalStock = allItems.reduce((s,i)=>s+(i.stock||0),0); const categoryWise = allCategories.map(cat => { const items = allItems.filter(i => i.category === cat.id); const totalStockQty = items.reduce((s,i)=>s+(i.stock||0),0); const totalVal = items.reduce((s,i)=>s+(i.price*(i.stock||0)),0); return `<div class="report-card"><h3>${cat.name}</h3><p>Total Stock: ${totalStockQty} units</p><p>Total Value: ${totalVal.toFixed(2)} PKR</p></div>`; }).join(''); const container = document.getElementById('stockSummaryReports'); if(container) container.innerHTML = `<div class="summary-stats"><div class="stat-card"><h4>Total Books</h4><div class="stat-value">${totalItems}</div></div><div class="stat-card"><h4>Total Value</h4><div class="stat-value">${totalValue.toFixed(0)} PKR</div></div><div class="stat-card"><h4>Low Stock</h4><div class="stat-value">${lowStockItems.length}</div></div><div class="stat-card"><h4>Out of Stock</h4><div class="stat-value">${outOfStock.length}</div></div></div><div class="report-card"><h3>⚠️ Low Stock Alert</h3>${lowStockItems.length ? lowStockItems.map(i => `<p><strong>${i.name}</strong> - Stock: ${i.stock}</p>`).join('') : '<p>✅ All books have sufficient stock.</p>'}</div>${categoryWise}`; }
+    async function exportLowStockToPDF() { await loadAllItems(); const lowStockItems = allItems.filter(i => (i.stock||0) < 5); if (lowStockItems.length === 0) { showToast("No low stock items", true); return; } const pdfDiv = document.createElement('div'); pdfDiv.style.padding = '30px'; pdfDiv.innerHTML = `<div style="text-align:center"><h1>SANA BOOK DEPOT</h1><p>Low Stock Report</p><p>${new Date().toLocaleString()}</p></div><table border="1"><tr><th>Book Name</th><th>Barcode</th><th>Stock</th></tr>${lowStockItems.map(i => `<tr><td>${i.name}</td><td>${i.id}</td><td>${i.stock}</td></tr>`).join('')}</table>`; html2pdf().set({ filename: `Low_Stock_${new Date().toISOString().slice(0,19)}.pdf` }).from(pdfDiv).save(); showToast("Report exported"); }
 
-    async function generateStockSummary() {
-        await loadAllItems();
-        const totalValue = allItems.reduce((sum, i) => sum + (i.price * (i.stock||0)), 0);
-        const lowStockItems = allItems.filter(i => (i.stock||0) < 5);
-        const outOfStock = allItems.filter(i => (i.stock||0) === 0);
-        const totalItems = allItems.length;
-        const totalStock = allItems.reduce((s,i)=>s+(i.stock||0),0);
-        
-        const categoryWise = allCategories.map(cat => {
-            const items = allItems.filter(i => i.category === cat.id);
-            const totalStockQty = items.reduce((s,i)=>s+(i.stock||0),0);
-            const totalVal = items.reduce((s,i)=>s+(i.price*(i.stock||0)),0);
-            return `<div class="report-card"><h3>${cat.name}</h3><p>Total Stock: ${totalStockQty} units</p><p>Total Value: ${totalVal.toFixed(2)} PKR</p><p>Items: ${items.length}</p></div>`;
-        }).join('');
-        
-        const container = document.getElementById('stockSummaryReports');
-        if(container) container.innerHTML = `
-            <div class="summary-stats">
-                <div class="stat-card"><h4>Total Books</h4><div class="stat-value">${totalItems}</div></div>
-                <div class="stat-card"><h4>Total Stock Value</h4><div class="stat-value">${totalValue.toFixed(0)} PKR</div></div>
-                <div class="stat-card"><h4>Total Stock Units</h4><div class="stat-value">${totalStock}</div></div>
-                <div class="stat-card"><h4>Low Stock Books</h4><div class="stat-value">${lowStockItems.length}</div></div>
-                <div class="stat-card"><h4>Out of Stock</h4><div class="stat-value">${outOfStock.length}</div></div>
-            </div>
-            <div class="report-card"><h3>⚠️ Low Stock Alert ( < 5 )</h3>${lowStockItems.length ? lowStockItems.map(i => `<p><strong>${i.name}</strong> - Current Stock: ${i.stock} - Minimum Required: 5</p>`).join('') : '<p>✅ All books have sufficient stock.</p>'}</div>
-            <div class="report-card"><h3>📦 Out of Stock Books</h3>${outOfStock.length ? outOfStock.map(i => `<p><strong>${i.name}</strong> - Stock: 0 - Please restock immediately!</p>`).join('') : '<p>✅ No out of stock books.</p>'}</div>
-            <div class="report-card"><h3>📊 Category-wise Stock Breakdown</h3>${categoryWise}</div>
-        `;
-    }
-    
-    async function exportLowStockToPDF() {
-        await loadAllItems();
-        const lowStockItems = allItems.filter(i => (i.stock||0) < 5);
-        if (lowStockItems.length === 0) {
-            showToast("No low stock items to export", true);
-            return;
-        }
-        const pdfDiv = document.createElement('div');
-        pdfDiv.style.padding = '30px';
-        pdfDiv.style.fontFamily = 'Inter, sans-serif';
-        pdfDiv.style.backgroundColor = 'white';
-        pdfDiv.innerHTML = `
-            <div style="text-align:center; border-bottom:3px solid #2c5364; padding-bottom:20px; margin-bottom:20px;">
-                <h1 style="color:#1a2a36;">📚 SANA BOOK DEPOT</h1>
-                <p>Usman Bazar Havelian | +923235124366</p>
-                <h2>Low Stock Report</h2>
-                <p>Generated: ${new Date().toLocaleString()}</p>
-            </div>
-            <table style="width:100%; border-collapse:collapse;">
-                <thead>
-                    <tr style="background-color:#2c5364; color:white;">
-                        <th style="padding:10px; border:1px solid #ddd;">Book Name</th>
-                        <th style="padding:10px; border:1px solid #ddd;">Barcode</th>
-                        <th style="padding:10px; border:1px solid #ddd;">Category</th>
-                        <th style="padding:10px; border:1px solid #ddd;">Current Stock</th>
-                        <th style="padding:10px; border:1px solid #ddd;">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${lowStockItems.map(item => {
-                        const category = allCategories.find(c=>c.id===item.category)?.name || 'N/A';
-                        const status = (item.stock||0) === 0 ? '⚠️ OUT OF STOCK' : '⚠️ Low Stock';
-                        return `<tr>
-                            <td style="padding:8px; border:1px solid #ddd;">${item.name}</td>
-                            <td style="padding:8px; border:1px solid #ddd;">${item.id}</td>
-                            <td style="padding:8px; border:1px solid #ddd;">${category}</td>
-                            <td style="padding:8px; border:1px solid #ddd;">${item.stock||0}</td>
-                            <td style="padding:8px; border:1px solid #ddd;">${status}</td>
-                        </tr>`;
-                    }).join('')}
-                </tbody>
-            </table>
-            <div style="text-align:center; margin-top:30px; padding-top:20px; border-top:2px dashed #ccc;">
-                <p>This is a computer generated report</p>
-            </div>
-        `;
-        html2pdf().set({ filename: `Low_Stock_Report_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`, margin: 0.5 }).from(pdfDiv).save();
-        showToast("Low stock report exported to PDF");
-    }
-
-    // Camera scanner functions
-    async function openPOSScanner() {
-        document.getElementById('scanModal').style.display = 'flex';
-        const container = document.getElementById('scanCameraContainer');
-        container.innerHTML = '<div id="posScanView" style="width:100%;"></div>';
-        stopScanner();
-        Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#posScanView"), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader","ean_8_reader","code_128_reader","code_39_reader"], multiple: false }, locate: true, numOfWorkers: 4 }, (err) => {
-            if (err) { showToast("Camera error", true); closePOSScanner(); return; }
-            Quagga.start();
-            activeScanner = true;
-            Quagga.onDetected(async (data) => {
-                if (scanCooldown) return;
-                const code = data.codeResult.code;
-                if (!isValidBarcode(code)) { showToast("Invalid barcode", true); scanCooldown=true; setTimeout(()=>scanCooldown=false,1500); return; }
-                if (lastScannedCode === code) return;
-                lastScannedCode = code;
-                scanCooldown = true;
-                stopScanner(); closePOSScanner();
-                if (window.scanForStock) { 
-                    const item = allItems.find(i => i.id === code);
-                    if(item) openStockUpdateByBarcode(code, item.name, item.stock||0);
-                    else showToast("Book not found", true);
-                    window.scanForStock = false;
-                }
-                else await processBarcodeForPOS(code);
-                setTimeout(() => { scanCooldown = false; lastScannedCode = null; }, 1000);
-            });
-        });
-    }
+    // Camera & Bluetooth functions
+    async function openPOSScanner() { document.getElementById('scanModal').style.display = 'flex'; const container = document.getElementById('scanCameraContainer'); container.innerHTML = '<div id="posScanView"></div>'; stopScanner(); Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#posScanView"), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader","ean_8_reader","code_128_reader","code_39_reader"], multiple: false }, locate: true }, (err) => { if (err) { showToast("Camera error", true); closePOSScanner(); return; } Quagga.start(); activeScanner = true; Quagga.onDetected(async (data) => { if (scanCooldown) return; const code = data.codeResult.code; if (!isValidBarcode(code)) { showToast("Invalid barcode", true); scanCooldown=true; setTimeout(()=>scanCooldown=false,1500); return; } if (lastScannedCode === code) return; lastScannedCode = code; scanCooldown = true; stopScanner(); closePOSScanner(); if (window.scanForStock) { const item = allItems.find(i => i.id === code); if(item) openStockUpdateByBarcode(code, item.name, item.stock||0); else showToast("Book not found", true); window.scanForStock = false; } else await processBarcodeForPOS(code); setTimeout(() => { scanCooldown = false; lastScannedCode = null; }, 1000); }); }); }
     function closePOSScanner() { document.getElementById('scanModal').style.display = 'none'; stopScanner(); }
-    async function openItemScanner() {
-        const container = document.getElementById('itemScannerView');
-        if (!container) return;
-        document.getElementById('itemCameraContainer').style.display = 'block';
-        container.innerHTML = '<div id="itemScanView" style="width:100%;"></div>';
-        stopScanner();
-        Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#itemScanView"), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader","ean_8_reader","code_128_reader","code_39_reader"], multiple: false }, locate: true, numOfWorkers: 4 }, (err) => {
-            if (err) { showToast("Camera error", true); closeItemScanner(); return; }
-            Quagga.start();
-            activeScanner = true;
-            Quagga.onDetected(async (data) => {
-                const code = data.codeResult.code;
-                if (code) { stopScanner(); document.getElementById('newItemBarcode').value = code; closeItemScanner(); showToast("Barcode scanned"); }
-            });
-        });
-    }
+    async function openItemScanner() { const container = document.getElementById('itemScannerView'); if (!container) return; document.getElementById('itemCameraContainer').style.display = 'block'; container.innerHTML = '<div id="itemScanView"></div>'; stopScanner(); Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#itemScanView"), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader","ean_8_reader","code_128_reader","code_39_reader"], multiple: false }, locate: true }, (err) => { if (err) { showToast("Camera error", true); closeItemScanner(); return; } Quagga.start(); activeScanner = true; Quagga.onDetected(async (data) => { const code = data.codeResult.code; if (code) { stopScanner(); document.getElementById('newItemBarcode').value = code; closeItemScanner(); showToast("Barcode scanned"); } }); }); }
     function closeItemScanner() { document.getElementById('itemCameraContainer').style.display = 'none'; stopScanner(); }
-
-    // Bluetooth scanner
-    async function connectBluetoothScanner() {
-        try {
-            btDevice = await navigator.bluetooth.requestDevice({ filters: [{ services: ['00001812-0000-1000-8000-00805f9b34fb'] }], optionalServices: ['00001812-0000-1000-8000-00805f9b34fb'] });
-            const server = await btDevice.gatt.connect();
-            const service = await server.getPrimaryService('00001812-0000-1000-8000-00805f9b34fb');
-            btCharacteristic = await service.getCharacteristic('00002a4d-0000-1000-8000-00805f9b34fb');
-            await btCharacteristic.startNotifications();
-            btCharacteristic.addEventListener('characteristicvaluechanged', (e) => {
-                const decoder = new TextDecoder('ascii');
-                let barcode = decoder.decode(e.target.value).replace(/[^a-zA-Z0-9]/g, '');
-                if (barcode && isValidBarcode(barcode)) { processBarcodeForPOS(barcode); addBtLog(`Scanned: ${barcode}`); }
-            });
-            isBtConnected = true;
-            document.getElementById('btScannerStatusDot').className = 'scanner-status-dot connected';
-            document.getElementById('btScannerStatusText').innerText = `Connected to ${btDevice.name}`;
-            showToast("Bluetooth scanner ready");
-        } catch(e) { showToast("BT error: "+e.message, true); }
-    }
-    function disconnectBluetoothScanner() {
-        if (btDevice && btDevice.gatt.connected) btDevice.gatt.disconnect();
-        isBtConnected = false;
-        document.getElementById('btScannerStatusDot').className = 'scanner-status-dot';
-        document.getElementById('btScannerStatusText').innerText = 'Disconnected';
-        showToast("Scanner disconnected");
-    }
+    async function connectBluetoothScanner() { try { btDevice = await navigator.bluetooth.requestDevice({ filters: [{ services: ['00001812-0000-1000-8000-00805f9b34fb'] }] }); const server = await btDevice.gatt.connect(); const service = await server.getPrimaryService('00001812-0000-1000-8000-00805f9b34fb'); btCharacteristic = await service.getCharacteristic('00002a4d-0000-1000-8000-00805f9b34fb'); await btCharacteristic.startNotifications(); btCharacteristic.addEventListener('characteristicvaluechanged', (e) => { const decoder = new TextDecoder('ascii'); let barcode = decoder.decode(e.target.value).replace(/[^a-zA-Z0-9]/g, ''); if (barcode && isValidBarcode(barcode)) { processBarcodeForPOS(barcode); addBtLog(`Scanned: ${barcode}`); } }); isBtConnected = true; document.getElementById('btScannerStatusDot').className = 'scanner-status-dot connected'; document.getElementById('btScannerStatusText').innerText = `Connected to ${btDevice.name}`; showToast("Bluetooth ready"); } catch(e) { showToast("BT error", true); } }
+    function disconnectBluetoothScanner() { if (btDevice && btDevice.gatt.connected) btDevice.gatt.disconnect(); isBtConnected = false; document.getElementById('btScannerStatusDot').className = 'scanner-status-dot'; document.getElementById('btScannerStatusText').innerText = 'Disconnected'; showToast("Disconnected"); }
     function addBtLog(msg) { const log = document.getElementById('btScannerLog'); if(log) log.innerHTML += `<div><i class="fas fa-barcode"></i> ${msg}</div>`; log.scrollTop = log.scrollHeight; }
 
-    // Navigation & initialization
     window.addEventListener('firebaseReady', async () => {
         setTimeout(() => { document.getElementById('startupScreen').style.opacity = '0'; setTimeout(() => { document.getElementById('startupScreen').style.display = 'none'; document.getElementById('appMain').style.display = 'block'; }, 500); }, 1500);
-        await loadCategories();
-        await loadAllItems();
-        await loadCustomers();
-        await loadLedger();
-        await loadInventoryList();
-        await generateStockSummary();
-        attachEvents();
-        computeTotals();
+        await loadCategories(); await loadAllItems(); await loadCustomers(); await loadLedger(); await loadInventoryList(); await generateStockSummary();
+        attachEvents(); computeTotals();
     });
 
     function attachEvents() {
-        // Dashboard card navigation
-        document.querySelectorAll('.dashboard-card').forEach(card => {
-            card.onclick = () => {
-                const pageId = card.dataset.page;
-                document.getElementById('dashboardSection').style.display = 'none';
-                document.getElementById(pageId).classList.add('active-page');
-                document.getElementById(pageId).style.display = 'block';
-                if (pageId === 'inventoryPage') loadInventoryList();
-                if (pageId === 'stockPage') loadInventoryList();
-                if (pageId === 'stockSummaryPage') generateStockSummary();
-            };
-        });
-        // Back buttons
-        document.querySelectorAll('.back-btn').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.section-page').forEach(p => { p.classList.remove('active-page'); p.style.display = 'none'; });
-                document.getElementById('dashboardSection').style.display = 'block';
-            };
-        });
-        // POS buttons
+        document.querySelectorAll('.dashboard-card').forEach(card => { card.onclick = () => { const pageId = card.dataset.page; document.getElementById('dashboardSection').style.display = 'none'; document.getElementById(pageId).classList.add('active-page'); document.getElementById(pageId).style.display = 'block'; if (pageId === 'inventoryPage') loadInventoryList(); if (pageId === 'stockPage') loadInventoryList(); if (pageId === 'stockSummaryPage') generateStockSummary(); if (pageId === 'ledgerPage') loadLedger(); }; });
+        document.querySelectorAll('.back-btn').forEach(btn => { btn.onclick = () => { document.querySelectorAll('.section-page').forEach(p => { p.classList.remove('active-page'); p.style.display = 'none'; }); document.getElementById('dashboardSection').style.display = 'block'; }; });
         document.getElementById('openScanModalBtn')?.addEventListener('click', () => { window.scanForStock = false; openPOSScanner(); });
         document.getElementById('stopScanModalBtn')?.addEventListener('click', closePOSScanner);
         document.getElementById('confirmQtyBtn')?.addEventListener('click', addToBillWithQuantity);
@@ -1153,10 +966,7 @@
         document.getElementById('newCustomerBtn')?.addEventListener('click', () => document.getElementById('newCustomerModal').style.display = 'flex');
         document.getElementById('addCustomerPageBtn')?.addEventListener('click', () => document.getElementById('newCustomerModal').style.display = 'flex');
         document.getElementById('cancelCustomerBtn')?.addEventListener('click', () => document.getElementById('newCustomerModal').style.display = 'none');
-        document.getElementById('confirmCustomerBtn')?.addEventListener('click', async () => {
-            const name = document.getElementById('newCustomerName').value.trim();
-            if(name){ await addDoc(collection(window.db, "customers"), { name, previousBalance:0 }); loadCustomers(); showToast("Customer added"); document.getElementById('newCustomerModal').style.display = 'none'; }
-        });
+        document.getElementById('confirmCustomerBtn')?.addEventListener('click', async () => { const name = document.getElementById('newCustomerName').value.trim(); if(name){ await addDoc(collection(window.db, "customers"), { name, previousBalance:0 }); loadCustomers(); showToast("Customer added"); document.getElementById('newCustomerModal').style.display = 'none'; } });
         document.getElementById('generatePdfBtn')?.addEventListener('click', generateAndSaveBill);
         document.getElementById('refreshLedgerBtn')?.addEventListener('click', loadLedger);
         document.getElementById('connectBtScannerBtn')?.addEventListener('click', connectBluetoothScanner);
@@ -1167,66 +977,23 @@
         document.getElementById('cancelPaymentBtn')?.addEventListener('click', () => document.getElementById('paymentModal').style.display = 'none');
         document.getElementById('confirmPaymentBtn')?.addEventListener('click', recordPayment);
         document.getElementById('exportLowStockPdfBtn')?.addEventListener('click', exportLowStockToPDF);
-        
-        // Inventory buttons
         document.getElementById('openAddItemModalBtn')?.addEventListener('click', () => { document.getElementById('addItemModal').style.display = 'flex'; updateCategoryDropdowns(); });
         document.getElementById('scanItemBarcodeBtn')?.addEventListener('click', openItemScanner);
         document.getElementById('stopItemCameraBtn')?.addEventListener('click', closeItemScanner);
         document.getElementById('cancelAddItemBtn')?.addEventListener('click', () => document.getElementById('addItemModal').style.display = 'none');
-        document.getElementById('saveItemBtn')?.addEventListener('click', async () => {
-            const barcode = document.getElementById('newItemBarcode').value.trim();
-            const category = document.getElementById('newItemCategory').value;
-            const name = document.getElementById('newItemName').value.trim();
-            const price = parseFloat(document.getElementById('newItemPrice').value);
-            const stock = parseInt(document.getElementById('newItemStock').value);
-            if(!barcode || !category || !name || isNaN(price)) { showToast("Fill all fields", true); return; }
-            const existing = await getDoc(doc(window.db, "inventory", barcode));
-            if(existing.exists()) { showToast("Book exists", true); return; }
-            await setDoc(doc(window.db, "inventory", barcode), { name, category, price, stock: stock||0 });
-            showToast("Book added");
-            document.getElementById('addItemModal').style.display = 'none';
-            await loadAllItems(); await loadInventoryList();
-            document.getElementById('newItemBarcode').value = ''; document.getElementById('newItemName').value = ''; document.getElementById('newItemPrice').value = ''; document.getElementById('newItemStock').value = '0';
-            closeItemScanner();
-        });
+        document.getElementById('saveItemBtn')?.addEventListener('click', async () => { const barcode = document.getElementById('newItemBarcode').value.trim(); const category = document.getElementById('newItemCategory').value; const name = document.getElementById('newItemName').value.trim(); const price = parseFloat(document.getElementById('newItemPrice').value); const stock = parseInt(document.getElementById('newItemStock').value); if(!barcode || !category || !name || isNaN(price)) { showToast("Fill all fields", true); return; } const existing = await getDoc(doc(window.db, "inventory", barcode)); if(existing.exists()) { showToast("Book exists", true); return; } await setDoc(doc(window.db, "inventory", barcode), { name, category, price, stock: stock||0 }); showToast("Book added"); document.getElementById('addItemModal').style.display = 'none'; await loadAllItems(); await loadInventoryList(); document.getElementById('newItemBarcode').value = ''; document.getElementById('newItemName').value = ''; document.getElementById('newItemPrice').value = ''; document.getElementById('newItemStock').value = '0'; closeItemScanner(); });
         document.getElementById('addCategoryBtn')?.addEventListener('click', () => document.getElementById('addCategoryModal').style.display = 'flex');
         document.getElementById('cancelCategoryBtn')?.addEventListener('click', () => document.getElementById('addCategoryModal').style.display = 'none');
-        document.getElementById('confirmCategoryBtn')?.addEventListener('click', async () => {
-            const catName = document.getElementById('newCategoryName').value.trim();
-            if(!catName) { showToast("Enter category name", true); return; }
-            await addDoc(collection(window.db, "categories"), { name: catName });
-            showToast("Category added");
-            document.getElementById('addCategoryModal').style.display = 'none';
-            await loadCategories();
-            document.getElementById('newCategoryName').value = '';
-        });
+        document.getElementById('confirmCategoryBtn')?.addEventListener('click', async () => { const catName = document.getElementById('newCategoryName').value.trim(); if(!catName) { showToast("Enter category name", true); return; } await addDoc(collection(window.db, "categories"), { name: catName }); showToast("Category added"); document.getElementById('addCategoryModal').style.display = 'none'; await loadCategories(); document.getElementById('newCategoryName').value = ''; });
         document.getElementById('categoryFilter')?.addEventListener('change', loadInventoryList);
-        
-        // Stock management buttons
         document.getElementById('scanStockBarcodeBtn')?.addEventListener('click', () => { window.scanForStock = true; openPOSScanner(); });
         document.getElementById('manualStockUpdateBtn')?.addEventListener('click', openManualStockUpdate);
-        document.getElementById('confirmStockBtn')?.addEventListener('click', async () => {
-            const newQty = document.getElementById('newStockQty').value;
-            if(!newQty || isNaN(parseInt(newQty))) { showToast("Valid quantity required", true); return; }
-            await updateStock(window.stockUpdateBarcode, newQty);
-            document.getElementById('stockUpdateModal').style.display = 'none';
-            showToast("Stock updated");
-        });
+        document.getElementById('confirmStockBtn')?.addEventListener('click', async () => { const newQty = document.getElementById('newStockQty').value; if(!newQty || isNaN(parseInt(newQty))) { showToast("Valid quantity required", true); return; } await updateStock(window.stockUpdateBarcode, newQty); document.getElementById('stockUpdateModal').style.display = 'none'; showToast("Stock updated"); });
         document.getElementById('cancelStockBtn')?.addEventListener('click', () => document.getElementById('stockUpdateModal').style.display = 'none');
         document.getElementById('manualBarcode')?.addEventListener('blur', fetchItemForManualUpdate);
         document.getElementById('cancelManualBtn')?.addEventListener('click', () => document.getElementById('manualStockUpdateModal').style.display = 'none');
         document.getElementById('confirmManualBtn')?.addEventListener('click', confirmManualUpdate);
-        
-        // Autocomplete for POS search
-        document.getElementById('searchItemInput')?.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filtered = allItems.filter(i => i.name.toLowerCase().includes(query));
-            const resultsDiv = document.getElementById('autocompleteResults');
-            if(filtered.length) resultsDiv.innerHTML = filtered.map(i => `<div class="autocomplete-item" data-barcode="${i.id}" data-name="${i.name}" data-price="${i.price}">📖 ${i.name} - ${i.price} PKR</div>`).join('');
-            else resultsDiv.innerHTML = '';
-            resultsDiv.style.display = filtered.length ? 'block' : 'none';
-            document.querySelectorAll('.autocomplete-item').forEach(el => el.addEventListener('click', () => { document.getElementById('searchItemInput').value = ''; resultsDiv.style.display = 'none'; openQuantityModal(el.dataset.barcode, el.dataset.name, parseFloat(el.dataset.price)); }));
-        });
+        document.getElementById('searchItemInput')?.addEventListener('input', (e) => { const query = e.target.value.toLowerCase(); const filtered = allItems.filter(i => i.name.toLowerCase().includes(query)); const resultsDiv = document.getElementById('autocompleteResults'); if(filtered.length) resultsDiv.innerHTML = filtered.map(i => `<div class="autocomplete-item" data-barcode="${i.id}" data-name="${i.name}" data-price="${i.price}">📖 ${i.name} - ${i.price} PKR</div>`).join(''); else resultsDiv.innerHTML = ''; resultsDiv.style.display = filtered.length ? 'block' : 'none'; document.querySelectorAll('.autocomplete-item').forEach(el => el.addEventListener('click', () => { document.getElementById('searchItemInput').value = ''; resultsDiv.style.display = 'none'; openQuantityModal(el.dataset.barcode, el.dataset.name, parseFloat(el.dataset.price)); })); });
         document.addEventListener('click', (e) => { if(!document.getElementById('searchItemInput')?.contains(e.target)) document.getElementById('autocompleteResults').style.display = 'none'; });
     }
 </script>
