@@ -1,510 +1,1234 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pay Detail Summary</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',Arial,Helvetica,sans-serif;font-size:14px;background:#f5f5f5;color:#1a1a1a;min-height:100vh;}
-.page{max-width:1100px;margin:30px auto;background:#fff;padding:40px 50px;box-shadow:0 2px 10px rgba(0,0,0,.08);border-radius:4px;}
-.main-heading{text-align:center;margin-bottom:8px;}
-.main-heading h1{font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#1a1a1a;margin:0;padding:0;}
-.main-heading .subtitle{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:3px;color:#555;margin-top:4px;}
-.section-title{text-align:center;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1a1a1a;margin:30px 0 20px 0;padding-bottom:10px;border-bottom:2px solid #1a1a1a;}
-.particulars-form{max-width:650px;margin:0 auto;}
-.form-row{display:flex;align-items:center;margin-bottom:16px;border:1px solid #d5d5d5;border-radius:4px;overflow:hidden;background:#fff;}
-.form-row .form-label{width:250px;min-width:200px;padding:12px 16px;font-weight:600;font-size:13px;color:#333;background:#f8f8f8;border-right:1px solid #e0e0e0;letter-spacing:.3px;}
-.form-row input,.form-row select{flex:1;border:none;outline:none;padding:12px 16px;font-size:13px;font-family:inherit;color:#333;background:#fff;width:100%;}
-.form-row input:focus,.form-row select:focus{background:#fafafa;}
-.form-row select{cursor:pointer;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
-.form-row input[type="date"]{color:#333;font-family:inherit;}
-.form-row input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer;filter:invert(0.4);}
-.btn-row{text-align:center;margin:25px 0;}
-.btn{display:inline-block;border:none;border-radius:4px;padding:14px 50px;font-size:14px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1px;transition:all 0.2s;font-family:inherit;background:#1a1a1a;color:#fff;}
-.btn:hover{background:#333;box-shadow:0 2px 8px rgba(0,0,0,.2);}
-.btn-secondary{display:inline-block;border:none;border-radius:4px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.5px;transition:all 0.2s;font-family:inherit;margin:0 5px;}
-.btn-print{background:#1a1a1a;color:#fff;}.btn-print:hover{background:#333;}
-.btn-recalc{background:#fff;color:#1a1a1a;border:2px solid #1a1a1a;}.btn-recalc:hover{background:#f5f5f5;}
-.result-cards{max-width:450px;margin:0 auto 25px auto;}
-.final-pay-card{background:#fff;border:2px solid #1a1a1a;border-radius:4px;padding:16px 20px;text-align:center;}
-.final-pay-card .card-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#555;margin-bottom:6px;}
-.final-pay-card .card-amount{font-size:28px;font-weight:700;color:#1a1a1a;}
-.final-pay-card .card-detail{font-size:11px;color:#777;margin-top:6px;}
-.table-section{margin-top:10px;}
-.table-section .table-title{background:#1a1a1a;color:#fff;padding:14px 20px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;text-align:center;border-radius:4px 4px 0 0;}
-.table-container{width:100%;overflow-x:auto;}
-table.pay-table{width:100%;border-collapse:collapse;font-size:12px;min-width:750px;border:2px solid #1a1a1a;}
-table.pay-table thead th{background:#1a1a1a;color:#fff;padding:10px 8px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;border:1px solid #444;}
-table.pay-table tbody td{padding:8px;border:1px solid #ccc;text-align:center;vertical-align:middle;color:#555;font-size:12px;}
-table.pay-table tbody tr.row-rev td{background:#fff3f3!important;font-weight:700!important;color:#c62828;}
-table.pay-table tbody tr.row-mustered td{background:#f0f0ff!important;font-weight:700!important;color:#1a237e;}
-table.pay-table tbody tr.row-pension td{background:#f0f8ff!important;font-weight:700!important;color:#0277bd;}
-table.pay-table tbody tr.row-prom td{background:#fdf0ff!important;font-weight:700!important;color:#6a1b9a;}
-table.pay-table tbody tr.row-upgrade td{background:#fff8f0!important;font-weight:700!important;color:#e65100;}
-table.pay-table tbody tr.row-advinc td{background:#f0fff4!important;font-weight:700!important;color:#2e7d32;}
-table.pay-table tbody tr.row-inc td{background:#fff;font-weight:400;color:#555;}
-table.pay-table tbody tr.row-inc td.td-event{text-align:left;}
-.td-sno{font-weight:700;color:#777;width:36px;}
-.td-pay{font-weight:700;color:#1a1a1a;white-space:nowrap;}
-.td-event{text-align:left!important;}
-.td-chg{white-space:nowrap;}.td-chg.pos{color:#2e7d32;}.td-chg.neg{color:#c62828;}
-.td-scale{font-size:10px;}.td-remark{font-size:10px;text-align:left!important;}
-.td-actions{white-space:nowrap;width:95px;}
-.action-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:1px solid #ccc;cursor:pointer;font-size:13px;transition:all 0.2s;margin:0 2px;background:#fff;color:#555;}
-.action-btn.add-btn:hover{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
-.action-btn.delete-btn:hover{background:#c62828;color:#fff;border-color:#c62828;}
-.action-btn.view-btn:hover{background:#2e7d32;color:#fff;border-color:#2e7d32;}
-.pay-summary-footer{background:#f9f9f9;border:2px solid #1a1a1a;border-top:none;padding:14px 20px;font-size:13px;text-align:center;}
-.error-msg{color:#c62828;font-weight:700;text-align:center;padding:18px;font-size:14px;background:#fff5f5;border:1px solid #ffcdd2;margin:15px 0;border-radius:4px;}
-.hidden{display:none!important;}
-
-/* ===== MODALS ===== */
-.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:10000;align-items:center;justify-content:center;padding:20px;}
-.modal-overlay.active{display:flex;}
-.modal-box{background:#fff;border-radius:10px;width:520px;max-width:95vw;max-height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden;display:flex;flex-direction:column;animation:modalIn 0.3s cubic-bezier(0.16,1,0.3,1);}
-@keyframes modalIn{from{transform:scale(.9) translateY(20px);opacity:0;}to{transform:scale(1) translateY(0);opacity:1;}}
-.modal-header{background:#1a1a1a;color:#fff;padding:16px 22px;font-size:15px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #333;flex-shrink:0;}
-.modal-header .modal-close{background:rgba(255,255,255,.12);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;}
-.modal-header .modal-close:hover{background:rgba(255,255,255,.25);transform:rotate(90deg);}
-.modal-body{padding:22px 24px;overflow-y:auto;flex:1;background:#fafafa;}
-.modal-body .modal-error{background:#fff5f5;border:1px solid #ffcdd2;border-radius:4px;color:#c62828;padding:10px 14px;font-size:12px;margin-bottom:14px;display:none;}
-.modal-body .modal-error.show{display:block;}
-.modal-field{margin-bottom:16px;}
-.modal-field label{display:block;font-weight:700;color:#1a1a1a;margin-bottom:6px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;}
-.modal-field input,.modal-field select{width:100%;border:2px solid #e0e0e0;border-radius:6px;padding:11px 14px;font-size:13px;font-family:inherit;color:#333;outline:none;background:#fff;transition:border 0.2s;}
-.modal-field input:focus,.modal-field select:focus{border-color:#1a1a1a;box-shadow:0 0 0 3px rgba(0,0,0,.06);background:#fff;}
-.modal-field input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer;}
-.modal-field .hint{font-size:11px;color:#888;margin-top:5px;line-height:1.4;}
-.modal-field .hint b{color:#555;}
-.modal-footer{padding:14px 24px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid #e0e0e0;background:#fff;flex-shrink:0;}
-.btn-modal-ok{background:#1a1a1a;color:#fff;border:none;border-radius:6px;padding:10px 30px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:all 0.2s;}
-.btn-modal-ok:hover{background:#333;box-shadow:0 4px 12px rgba(0,0,0,.2);transform:translateY(-1px);}
-.btn-modal-cancel{background:#fff;color:#555;border:2px solid #ddd;border-radius:6px;padding:10px 24px;font-size:13px;cursor:pointer;font-weight:600;transition:all 0.2s;}
-.btn-modal-cancel:hover{background:#f5f5f5;border-color:#bbb;}
-.btn-modal-delete{background:#c62828;color:#fff;border:none;border-radius:6px;padding:10px 30px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:all 0.2s;}
-.btn-modal-delete:hover{background:#b71c1c;}
-.confirm-icon{width:60px;height:60px;border-radius:50%;margin:0 auto 16px auto;display:flex;align-items:center;justify-content:center;font-size:28px;}
-.confirm-icon.warning{background:#fff3e0;color:#e65100;}
-.confirm-message{text-align:center;font-size:14px;color:#333;margin-bottom:6px;font-weight:600;line-height:1.5;}
-.confirm-detail{text-align:center;font-size:12px;color:#888;margin-bottom:4px;}
-.detail-list{padding:0;}
-.detail-item{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #eee;}
-.detail-item:last-child{border-bottom:none;}
-.detail-key{font-weight:700;color:#555;font-size:11px;text-transform:uppercase;letter-spacing:.5px;min-width:110px;}
-.detail-val{font-weight:600;color:#1a1a1a;font-size:14px;text-align:right;}
-.print-preview-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:20000;align-items:center;justify-content:center;padding:20px;}
-.print-preview-overlay.active{display:flex;}
-.print-preview-container{background:#fff;border-radius:10px;width:95vw;max-width:950px;max-height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden;}
-.print-content{flex:1;overflow-y:auto;padding:24px;}
-.action-menu{position:fixed;background:#fff;border:2px solid #1a1a1a;border-radius:8px;padding:6px 0;z-index:15000;min-width:270px;box-shadow:0 10px 35px rgba(0,0,0,.22);font-size:13px;}
-.action-menu-item{padding:11px 18px;cursor:pointer;transition:all 0.15s;white-space:nowrap;display:flex;align-items:center;gap:10px;font-weight:500;}
-.action-menu-item:hover{background:#f5f5f5;padding-left:22px;}
-
-/* ===== RESPONSIVE ===== */
-@media(max-width:768px){.page{margin:10px;padding:20px 15px;}.form-row{flex-direction:column;}.form-row .form-label{width:100%;border-right:none;border-bottom:1px solid #e0e0e0;padding:10px 14px;min-width:auto;}.form-row input,.form-row select{padding:12px 14px;}.btn{padding:14px 40px;width:100%;}.btn-secondary{padding:10px 18px;font-size:12px;}table.pay-table{min-width:600px;font-size:11px;}.modal-box{width:98vw;}}
-@media(max-width:480px){.page{padding:15px 10px;}.main-heading h1{font-size:17px;}.section-title{font-size:13px;}table.pay-table{min-width:500px;font-size:10px;}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Sana Book Depot - POS System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, orderBy, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDnFJu0ZegvbY5-eVhF3SxNCu3uxqs1BE",
+            authDomain: "sana-book-depot.firebaseapp.com",
+            projectId: "sana-book-depot",
+            storageBucket: "sana-book-depot.firebasestorage.app",
+            messagingSenderId: "878136540496",
+            appId: "1:878136540496:web:f1c459adf1cc7a0dd50055",
+            measurementId: "G-XJPE5S6HGR"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        enableIndexedDbPersistence(db).catch(() => {});
+        
+        window.db = db;
+        window.collection = collection;
+        window.doc = doc;
+        window.getDoc = getDoc;
+        window.getDocs = getDocs;
+        window.setDoc = setDoc;
+        window.addDoc = addDoc;
+        window.updateDoc = updateDoc;
+        window.query = query;
+        window.orderBy = orderBy;
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            window.dispatchEvent(new Event('firebaseReady'));
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        .top-shop-bar {
+            background: linear-gradient(135deg, #1a2a36, #2c5364);
+            color: white;
+            text-align: center;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-shop-bar .shop-name {
+            font-weight: 900;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+        }
+        .top-shop-bar .shop-mobile {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+        #startupScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease;
+        }
+        .startup-content {
+            text-align: center;
+            animation: floatIn 0.8s ease;
+        }
+        @keyframes floatIn {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .book-logo {
+            font-size: 100px;
+            color: #f5c542;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.3));
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .startup-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: white;
+            margin-top: 20px;
+        }
+        .startup-subtitle {
+            color: #cbd5e1;
+            margin-top: 10px;
+        }
+        .loading-bar {
+            width: 200px;
+            height: 3px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            margin: 30px auto 0;
+            overflow: hidden;
+        }
+        .loading-progress {
+            width: 100%;
+            height: 100%;
+            background: #f5c542;
+            animation: loadProgress 2s ease forwards;
+        }
+        @keyframes loadProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        .connection-status {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .green-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #2ecc71;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #2ecc71;
+            animation: pulse-green 1.5s infinite;
+        }
+        .red-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+        }
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.9); }
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        /* Dashboard - 2 cards per row */
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .card-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 28px;
+            padding: 35px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+            border-color: #2c5364;
+        }
+        .dashboard-card i {
+            font-size: 3rem;
+            color: #2c5364;
+            margin-bottom: 15px;
+        }
+        .dashboard-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .dashboard-card p {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .section-page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .section-page.active-page {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .back-btn {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .back-btn:hover {
+            background: #cbd5e1;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+        h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            border-left: 5px solid #2c5364;
+            padding-left: 14px;
+        }
+        button, .btn {
+            background: #2c5364;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin: 4px 6px 4px 0;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button:hover { background: #1a3a48; transform: translateY(-1px); }
+        .btn-outline {
+            background: white;
+            border: 1.5px solid #2c5364;
+            color: #2c5364;
+        }
+        .btn-outline:hover { background: #eef2ff; transform: translateY(-1px); }
+        .btn-success {
+            background: #27ae60;
+        }
+        .btn-success:hover { background: #1e8449; }
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 24px;
+            border: 1px solid #d1d5db;
+            font-size: 0.9rem;
+        }
+        .search-container { position: relative; }
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            margin-top: 4px;
+        }
+        .autocomplete-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #e2e8f0;
+            transition: 0.2s;
+        }
+        .autocomplete-item:hover { background: #f1f5f9; }
+        .bill-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .bill-table th, .bill-table td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 5px;
+            text-align: left;
+        }
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+        .grand-total {
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 20px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+        }
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 36px;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            animation: modalSlide 0.3s ease;
+        }
+        @keyframes modalSlide {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-content h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .camera-preview {
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 15px 0;
+            min-height: 280px;
+            max-height: 350px;
+            position: relative;
+        }
+        .camera-focus {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            height: 40%;
+            transform: translate(-50%, -50%);
+            border: 2px solid #f5c542;
+            border-radius: 12px;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.3);
+            pointer-events: none;
+            z-index: 10;
+            animation: pulseFocus 1.5s infinite;
+        }
+        @keyframes pulseFocus {
+            0%, 100% { border-color: #f5c542; }
+            50% { border-color: #fff; }
+        }
+        .flex-btns {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 60px;
+            z-index: 1500;
+            opacity: 0;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+        .list-item {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #e2e8f0;
+            transition: 0.2s;
+        }
+        .list-item:hover {
+            background: #eef2ff;
+            transform: translateX(4px);
+        }
+        .scanner-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+        .scanner-status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+        .scanner-status-dot.connected {
+            background: #2ecc71;
+            box-shadow: 0 0 8px #2ecc71;
+            animation: pulse-green 1.5s infinite;
+        }
+        .report-card {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #2c5364, #1a3a48);
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        .stat-card h4 {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .stat-card .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+        @media (max-width: 700px) {
+            .card-row { grid-template-columns: 1fr; gap: 16px; }
+            .dashboard { gap: 16px; }
+            .top-shop-bar .shop-name { font-size: 1.2rem; }
+            .connection-status { top: 70px; right: 10px; }
+            .modal-content { padding: 20px; }
+            .camera-preview { min-height: 220px; }
+            .summary-stats { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-
-<div class="page">
-<div class="main-heading">
-<h1>Pay Detail Summary</h1>
-<div class="subtitle">Government Employee Pay Record System</div>
-</div>
-<div class="section-title">Individual Particulars</div>
-<div class="particulars-form">
-<div class="form-row"><div class="form-label">Date of Enrolment</div><input type="date" id="inp_enrol"></div>
-<div class="form-row"><div class="form-label">Date of Mustered (Passing out date)</div><input type="date" id="inp_mustred"></div>
-<div class="form-row"><div class="form-label">Pay Scale</div><select id="inp_scale"><option value="">-- Select Pay Scale --</option></select></div>
-<div class="form-row"><div class="form-label">Date of Retirement</div><input type="date" id="inp_retire"></div>
-</div>
-<div class="btn-row">
-<button class="btn" onclick="calculatePay()">CALCULATE PAY DETAILS</button>
-</div>
-<div id="error_area" class="hidden error-msg"></div>
-<div id="result_area" class="hidden">
-<div class="btn-row">
-<button class="btn-secondary btn-print" onclick="openPrintPreview()">🖨 PRINT / SAVE PDF</button>
-<button class="btn-secondary btn-recalc" onclick="calculatePay()">🔄 RECALCULATE</button>
-</div>
-<div class="result-cards"><div id="summary_boxes"></div></div>
-<div class="table-section"><div class="table-title">Year-Wise Pay Details</div><div class="table-container"><div id="pay_table_area"></div></div></div>
-</div>
+<div class="top-shop-bar">
+    <div class="shop-name">📚 SANA BOOK DEPOT 📚</div>
+    <div class="shop-mobile">Usman Bazar Havelian | +923235124366</div>
 </div>
 
-<!-- ===== UNIFIED ACTION MODAL ===== -->
-<div class="modal-overlay" id="main_modal">
-<div class="modal-box">
-<div class="modal-header"><span id="modal_title">Add Entry</span><button class="modal-close" onclick="closeModal()">✕</button></div>
-<div class="modal-body" id="modal_body"></div>
-<div class="modal-footer"><button class="btn-modal-cancel" onclick="closeModal()">Cancel</button><button class="btn-modal-ok" onclick="applyModalAction()">✓ Apply</button></div>
-</div>
-</div>
-
-<!-- ===== CONFIRMATION MODAL ===== -->
-<div class="modal-overlay" id="confirm_modal">
-<div class="modal-box" style="width:420px;">
-<div class="modal-header"><span>⚠ Confirm Delete</span><button class="modal-close" onclick="closeConfirmModal()">✕</button></div>
-<div class="modal-body" style="text-align:center;padding:24px;"><div class="confirm-icon warning">⚠</div><div class="confirm-message">Are you sure you want to delete this entry?</div><div class="confirm-detail" id="confirm_detail">This action cannot be undone.</div></div>
-<div class="modal-footer"><button class="btn-modal-cancel" onclick="closeConfirmModal()">Cancel</button><button class="btn-modal-delete" onclick="confirmDelete()">🗑 Delete</button></div>
-</div>
+<div id="startupScreen">
+    <div class="startup-content">
+        <div class="book-logo"><i class="fas fa-book-open"></i></div>
+        <div class="startup-title">SANA BOOK DEPOT</div>
+        <div class="startup-subtitle">Professional POS Billing System</div>
+        <div class="loading-bar"><div class="loading-progress"></div></div>
+    </div>
 </div>
 
-<!-- ===== VIEW DETAIL MODAL ===== -->
-<div class="modal-overlay" id="view_modal">
-<div class="modal-box">
-<div class="modal-header"><span>📋 Entry Details</span><button class="modal-close" onclick="document.getElementById('view_modal').classList.remove('active')">✕</button></div>
-<div class="modal-body"><div class="detail-list" id="view_modal_body"></div></div>
-<div class="modal-footer"><button class="btn-modal-cancel" onclick="document.getElementById('view_modal').classList.remove('active')">Close</button></div>
-</div>
+<div class="connection-status" id="connStatus">
+    <span class="green-dot" id="statusDot"></span>
+    <span id="statusText">Connected</span>
 </div>
 
-<!-- ===== PRINT PREVIEW MODAL ===== -->
-<div class="print-preview-overlay" id="print_preview_overlay">
-<div class="print-preview-container">
-<div class="modal-header" style="border-radius:8px 8px 0 0;"><span>🖨 Print Preview - Pay Detail Summary</span><div style="display:flex;gap:8px;"><button class="btn-modal-ok" style="padding:7px 16px;font-size:11px;" onclick="saveAsPDF()">💾 PDF</button><button class="btn-modal-ok" style="padding:7px 16px;font-size:11px;background:#333;" onclick="printDocument()">🖨 Print</button><button class="modal-close" onclick="closePrintPreview()">✕</button></div></div>
-<div class="print-content" id="print_preview_content"></div>
-<div class="modal-footer"><button class="btn-modal-cancel" onclick="closePrintPreview()">Close</button><button class="btn-modal-ok" onclick="saveAsPDF()">💾 Save PDF</button><button class="btn-modal-ok" style="background:#333;" onclick="printDocument()">🖨 Print</button></div>
+<div class="container" style="display: none;" id="appMain">
+    <!-- Dashboard Section - 2 cards per row -->
+    <div id="dashboardSection">
+        <div class="dashboard">
+            <div class="card-row">
+                <div class="dashboard-card" data-page="posPage">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>POS / Billing</h3>
+                    <p>Process customer bills, add items, apply discounts</p>
+                </div>
+                <div class="dashboard-card" data-page="inventoryPage">
+                    <i class="fas fa-book"></i>
+                    <h3>Books Database</h3>
+                    <p>Manage books, categories, stock levels</p>
+                </div>
+            </div>
+            <div class="card-row">
+                <div class="dashboard-card" data-page="customersPage">
+                    <i class="fas fa-users"></i>
+                    <h3>Customers</h3>
+                    <p>Manage customer records and balances</p>
+                </div>
+                <div class="dashboard-card" data-page="ledgerPage">
+                    <i class="fas fa-receipt"></i>
+                    <h3>Bills Ledger</h3>
+                    <p>View all past bills and transactions</p>
+                </div>
+            </div>
+            <div class="card-row">
+                <div class="dashboard-card" data-page="stockPage">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Stock Management</h3>
+                    <p>Update stock levels manually or via barcode</p>
+                </div>
+                <div class="dashboard-card" data-page="btScannerPage">
+                    <i class="fab fa-bluetooth"></i>
+                    <h3>Bluetooth Scanner</h3>
+                    <p>Connect Bluetooth barcode scanner</p>
+                </div>
+            </div>
+            <div class="card-row">
+                <div class="dashboard-card" data-page="stockSummaryPage">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>Stock Summary</h3>
+                    <p>Advanced stock reports, low stock alerts, export PDF</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- POS PAGE -->
+    <div id="posPage" class="section-page">
+        <div class="section-header">
+            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+        </div>
+        <div class="card">
+            <h2><i class="fas fa-user-circle"></i> Customer Selection</h2>
+            <select id="customerSelect"></select>
+            <button id="newCustomerBtn"><i class="fas fa-user-plus"></i> New Customer</button>
+            <div style="margin-top: 12px; padding: 10px; background: #f8fafc; border-radius: 20px;">
+                Previous Balance: <strong id="prevBalanceDisplay" style="font-size: 1.2rem;">0.00 PKR</strong>
+            </div>
+        </div>
+        <div class="card">
+            <h2><i class="fas fa-search"></i> Add Items to Cart</h2>
+            <button id="openScanModalBtn" style="width: 100%;"><i class="fas fa-camera"></i> Scan Barcode</button>
+            <div class="search-container" style="margin-top: 12px;">
+                <input type="text" id="searchItemInput" placeholder="🔍 Search book by name..." autocomplete="off">
+                <div id="autocompleteResults" class="autocomplete-list" style="display: none;"></div>
+            </div>
+        </div>
+        <div class="card">
+            <h2><i class="fas fa-shopping-cart"></i> Current Cart</h2>
+            <div style="overflow-x: auto;">
+                <table class="bill-table">
+                    <thead><tr><th>Item</th><th>Qty</th><th>Price (PKR)</th><th>Amount (PKR)</th><th></th></tr></thead>
+                    <tbody id="billItemsBody"></tbody>
+                </table>
+            </div>
+            <div style="margin-top: 16px;">
+                <div class="totals-row"><span>Total Bill:</span><span id="totalBillSpan">0.00 PKR</span></div>
+                <div class="totals-row"><span>Discount %:</span><input type="number" id="discountPercent" value="0" step="any" style="width: 100px;"></div>
+                <div class="totals-row"><span>Discount Amount:</span><span id="discountAmountSpan">0.00 PKR</span></div>
+                <div class="totals-row"><span>Previous Balance:</span><span id="prevBalSpan">0.00 PKR</span></div>
+                <div class="totals-row grand-total"><span>Grand Total:</span><span id="grandTotalSpan">0.00 PKR</span></div>
+                <div class="totals-row"><span>Amount Paid:</span><input type="number" id="paidAmount" value="0" step="any" style="width: 130px;"></div>
+                <div class="totals-row"><span>Balance:</span><span id="balanceSpan">0.00 PKR</span></div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px;">
+                <button id="generatePdfBtn"><i class="fas fa-file-pdf"></i> Save Bill & PDF</button>
+                <button id="bluetoothPrintBtn"><i class="fab fa-bluetooth"></i> Print</button>
+                <button id="whatsappBtn"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOOKS DATABASE PAGE -->
+    <div id="inventoryPage" class="section-page">
+        <div class="section-header">
+            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+        </div>
+        <div class="card">
+            <h2><i class="fas fa-book"></i> Books Database</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <select id="categoryFilter" style="flex:1;"></select>
+                <button id="addCategoryBtn" class="btn-outline"><i class="fas fa-plus"></i> Add Category</button>
+            </div>
+            <button id="openAddItemModalBtn"><i class="fas fa-plus-circle"></i> Add New Book</button>
+            <div id="inventoryList" style="margin-top:16px; max-height: 500px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- CUSTOMERS PAGE -->
+    <div id="customersPage" class="section-page">
+        <div class="section-header">
+            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+        </div>
+        <div class="card">
+            <h2><i class="fas fa-address-card"></i> Customer Management</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="customerSearchInput" placeholder="🔍 Search customer..." style="flex:1;">
+                <button id="addCustomerPageBtn"><i class="fas fa-user-plus"></i> Add</button>
+            </div>
+            <div id="customersList" style="margin-top:16px;"></div>
+        </div>
+    </div>
+
+    <!-- LEDGER PAGE -->
+    <div id="ledgerPage" class="section-page">
+        <div class="section-header">
+            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+        </div>
+        <div class="card">
+            <h2><i class="fas fa-history"></i> Bills Ledger</h2>
+            <button id="refreshLedgerBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <div id="ledgerList" style="margin-top:16px;"></div>
+        </div>
+    </div>
+
+    <!-- STOCK MANAGEMENT PAGE -->
+    <div id="stockPage" class="section-page">
+        <div class="section-header">
+            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+        </div>
+        <div class="card">
+            <h2><i class="fas fa-chart-line"></i> Stock Management</h2>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                <button id="scanStockBarcodeBtn"><i class="fas fa-camera"></i> Scan Barcode to Update Stock</button>
+                <button id="manualStockUpdateBtn" class="btn-outline"><i class="fas fa-edit"></i> Manual Stock Update</button>
+            </div>
+            <div id="stockItemList" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- STOCK SUMMARY PAGE -->
+    <div id="stockSummaryPage" class="section-page">
+        <div class="section-header">
+            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+            <button id="exportLowStockPdfBtn" class="btn-success"><i class="fas fa-file-pdf"></i> Export Low Stock to PDF</button>
+        </div>
+        <div class="card">
+            <h2><i class="fas fa-chart-bar"></i> Advanced Stock Summary</h2>
+            <div id="stockSummaryReports"></div>
+        </div>
+    </div>
+
+    <!-- BLUETOOTH SCANNER PAGE -->
+    <div id="btScannerPage" class="section-page">
+        <div class="section-header">
+            <button class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+        </div>
+        <div class="card">
+            <h2><i class="fab fa-bluetooth"></i> Bluetooth Barcode Scanner</h2>
+            <div class="scanner-status">
+                <div class="scanner-status-dot" id="btScannerStatusDot"></div>
+                <span id="btScannerStatusText">Disconnected</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="connectBtScannerBtn"><i class="fab fa-bluetooth"></i> Connect Scanner</button>
+                <button id="disconnectBtScannerBtn" class="btn-outline"><i class="fas fa-times"></i> Disconnect</button>
+            </div>
+            <div id="btScannerLog" style="margin-top: 15px; max-height: 300px; overflow-y: auto; background: #f8fafc; border-radius: 20px; padding: 12px;"></div>
+        </div>
+    </div>
 </div>
-</div>
+
+<!-- Modals -->
+<div id="newCustomerModal" class="modal"><div class="modal-content"><h3><i class="fas fa-user-plus"></i> Add New Customer</h3><input type="text" id="newCustomerName" placeholder="Customer Name *"><div class="flex-btns"><button id="cancelCustomerBtn">Cancel</button><button id="confirmCustomerBtn">Save</button></div></div></div>
+<div id="paymentModal" class="modal"><div class="modal-content"><h3><i class="fas fa-money-bill-wave"></i> Record Payment</h3><p><strong>Customer:</strong> <span id="paymentCustomerName"></span></p><p><strong>Balance:</strong> <span id="paymentCurrentBalance"></span> PKR</p><input type="number" id="paymentAmount" placeholder="Amount"><div class="flex-btns"><button id="cancelPaymentBtn">Cancel</button><button id="confirmPaymentBtn">Record</button></div></div></div>
+<div id="scanModal" class="modal"><div class="modal-content"><h3><i class="fas fa-camera"></i> Scan Barcode</h3><div class="camera-preview" style="position: relative;"><div id="scanCameraContainer"></div><div class="camera-focus"></div></div><button id="stopScanModalBtn" class="btn-outline">Close</button></div></div>
+<div id="quantityModal" class="modal"><div class="modal-content"><h3><i class="fas fa-cart-plus"></i> Add to Cart</h3><div><strong id="qtyItemName"></strong></div><div>Price: <span id="qtyItemPrice"></span> PKR</div><label>Quantity:</label><input type="number" id="qtyInput" value="1" min="1"><div class="flex-btns"><button id="cancelQtyBtn">Cancel</button><button id="confirmQtyBtn">Add</button></div></div></div>
+<div id="addItemModal" class="modal"><div class="modal-content"><h3><i class="fas fa-book"></i> Add New Book</h3><div style="display: flex; gap: 10px;"><input type="text" id="newItemBarcode" placeholder="Barcode *" style="flex:1;"><button id="scanItemBarcodeBtn" class="btn-outline"><i class="fas fa-camera"></i> Scan</button></div><div id="itemCameraContainer" style="display:none;"><div id="itemScannerView" class="camera-preview"></div><button id="stopItemCameraBtn" class="btn-outline">Stop</button></div><select id="newItemCategory"></select><input type="text" id="newItemName" placeholder="Book Name *"><input type="number" id="newItemPrice" placeholder="Price (PKR) *" step="any"><input type="number" id="newItemStock" placeholder="Initial Stock" value="0"><div class="flex-btns"><button id="cancelAddItemBtn">Cancel</button><button id="saveItemBtn">Save</button></div></div></div>
+<div id="addCategoryModal" class="modal"><div class="modal-content"><h3><i class="fas fa-tag"></i> Add Category</h3><input type="text" id="newCategoryName" placeholder="Category Name"><div class="flex-btns"><button id="cancelCategoryBtn">Cancel</button><button id="confirmCategoryBtn">Save</button></div></div></div>
+<div id="stockUpdateModal" class="modal"><div class="modal-content"><h3><i class="fas fa-boxes"></i> Update Stock</h3><p><strong>Item:</strong> <span id="stockItemName"></span></p><p><strong>Current Stock:</strong> <span id="currentStockQty"></span></p><input type="number" id="newStockQty" placeholder="New Quantity"><div class="flex-btns"><button id="cancelStockBtn">Cancel</button><button id="confirmStockBtn">Update</button></div></div></div>
+<div id="manualStockUpdateModal" class="modal"><div class="modal-content"><h3><i class="fas fa-edit"></i> Manual Stock Update</h3><input type="text" id="manualBarcode" placeholder="Book Barcode *"><input type="text" id="manualItemName" placeholder="Book Name" readonly style="background:#f5f5f5;"><input type="number" id="manualNewStock" placeholder="New Quantity *" step="1"><div class="flex-btns"><button id="cancelManualBtn">Cancel</button><button id="confirmManualBtn">Update Stock</button></div></div></div>
+<div id="toastMsg" class="toast"></div>
 
 <script>
-'use strict';
-console.log('Pay Detail Summary – Clean Professional Version');
+    // Global variables
+    let currentCustomer = { id: null, name: '', previousBalance: 0 };
+    let billItems = [];
+    let discountPercent = 0;
+    let allItems = [];
+    let allCategories = [];
+    let activeScanner = null;
+    let allCustomers = [];
+    let lastScannedCode = null;
+    let scanCooldown = false;
+    let btDevice = null, btCharacteristic = null, isBtConnected = false;
 
-/* ================================================================
-   COMPLETE PAY SCALE DATA
-   ================================================================ */
-const PAY_SCALES={
-"Z-1":[{year:1991,min:920,inc:26,stages:[920,946,972,998,1024,1050,1076,1102,1128,1154,1180,1206,1232,1258,1284,1310,1336,1362,1388,1414,1440,1466,1492,1518,1544,1570,1596,1622,1648,1674,1700]},{year:1994,min:1245,inc:35,stages:[1245,1280,1315,1350,1385,1420,1455,1490,1525,1560,1595,1630,1665,1700,1735,1770,1805,1840,1875,1910,1945,1980,2015,2050,2085,2120,2155,2190,2225,2260,2295]},{year:2001,min:1870,inc:55,stages:[1870,1925,1980,2035,2090,2145,2200,2255,2310,2365,2420,2475,2530,2585,2640,2695,2750,2805,2860,2915,2970,3025,3080,3135,3190,3245,3300,3355,3410,3465,3520]},{year:2005,min:2150,inc:65,stages:[2150,2215,2280,2345,2410,2475,2540,2605,2670,2735,2800,2865,2930,2995,3060,3125,3190,3255,3320,3385,3450,3515,3580,3645,3710,3775,3840,3905,3970,4035,4100]},{year:2007,min:2475,inc:75,stages:[2475,2550,2625,2700,2775,2850,2925,3000,3075,3150,3225,3300,3375,3450,3525,3600,3675,3750,3825,3900,3975,4050,4125,4200,4275,4350,4425,4500,4575,4650,4725]},{year:2008,min:2970,inc:90,stages:[2970,3060,3150,3240,3330,3420,3510,3600,3690,3780,3870,3960,4050,4140,4230,4320,4410,4500,4590,4680,4770,4860,4950,5040,5130,5220,5310,5400,5490,5580,5670]},{year:2011,min:4800,inc:150,stages:[4800,4950,5100,5250,5400,5550,5700,5850,6000,6150,6300,6450,6600,6750,6900,7050,7200,7350,7500,7650,7800,7950,8100,8250,8400,8550,8700,8850,9000,9150,9300]},{year:2015,min:6210,inc:195,stages:[6210,6405,6600,6795,6990,7185,7380,7575,7770,7965,8160,8355,8550,8745,8940,9135,9330,9525,9720,9915,10110,10305,10500,10695,10890,11085,11280,11475,11670,11865,12060]},{year:2016,min:7640,inc:240,stages:[7640,7880,8120,8360,8600,8840,9080,9320,9560,9800,10040,10280,10520,10760,11000,11240,11480,11720,11960,12200,12440,12680,12920,13160,13400,13640,13880,14120,14360,14600,14840]},{year:2017,min:10610,inc:330,stages:[10610,10940,11270,11600,11930,12260,12590,12920,13250,13580,13910,14240,14570,14900,15230,15560,15890,16220,16550,16880,17210,17540,17870,18200,18530,18860,19190,19520,19850,20180,20510]},{year:2022,min:15620,inc:490,stages:[15620,16110,16600,17090,17580,18070,18560,19050,19540,20030,20520,21010,21500,21990,22480,22970,23460,23950,24440,24930,25420,25910,26400,26890,27380,27870,28360,28850,29340,29830,30320]}],
-"Z-2":[{year:1991,min:1035,inc:49,stages:[1035,1084,1133,1182,1231,1280,1329,1378,1427,1476,1525,1574,1623,1672,1721,1770,1819,1868,1917,1966,2015,2064,2113,2162,2211,2260,2309,2358,2407,2456,2505]},{year:1994,min:1400,inc:66,stages:[1400,1466,1532,1598,1664,1730,1796,1862,1928,1994,2060,2126,2192,2258,2324,2390,2456,2522,2588,2654,2720,2786,2852,2918,2984,3050,3116,3182,3248,3314,3380]},{year:2001,min:2100,inc:100,stages:[2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100,3200,3300,3400,3500,3600,3700,3800,3900,4000,4100,4200,4300,4400,4500,4600,4700,4800,4900,5000,5100]},{year:2005,min:2415,inc:115,stages:[2415,2530,2645,2760,2875,2990,3105,3220,3335,3450,3565,3680,3795,3910,4025,4140,4255,4370,4485,4600,4715,4830,4945,5060,5175,5290,5405,5520,5635,5750,5865]},{year:2007,min:2780,inc:135,stages:[2780,2915,3050,3185,3320,3455,3590,3725,3860,3995,4130,4265,4400,4535,4670,4805,4940,5075,5210,5345,5480,5615,5750,5885,6020,6155,6290,6425,6560,6695,6830]},{year:2008,min:3340,inc:160,stages:[3340,3500,3660,3820,3980,4140,4300,4460,4620,4780,4940,5100,5260,5420,5580,5740,5900,6060,6220,6380,6540,6700,6860,7020,7180,7340,7500,7660,7820,7980,8140]},{year:2011,min:5400,inc:260,stages:[5400,5660,5920,6180,6440,6700,6960,7220,7480,7740,8000,8260,8520,8780,9040,9300,9560,9820,10080,10340,10600,10860,11120,11380,11640,11900,12160,12420,12680,12940,13200]},{year:2015,min:6985,inc:340,stages:[6985,7325,7665,8005,8345,8685,9025,9365,9705,10045,10385,10725,11065,11405,11745,12085,12425,12765,13105,13445,13785,14125,14465,14805,15145,15485,15825,16165,16505,16845,17185]},{year:2016,min:8590,inc:420,stages:[8590,9010,9430,9850,10270,10690,11110,11530,11950,12370,12790,13210,13630,14050,14470,14890,15310,15730,16150,16570,16990,17410,17830,18250,18670,19090,19510,19930,20350,20770,21190]},{year:2017,min:11930,inc:580,stages:[11930,12510,13090,13670,14250,14830,15410,15990,16570,17150,17730,18310,18890,19470,20050,20630,21210,21790,22370,22950,23530,24110,24690,25270,25850,26430,27010,27590,28170,28750,29330]},{year:2022,min:17570,inc:860,stages:[17570,18430,19290,20150,21010,21870,22730,23590,24450,25310,26170,27030,27890,28750,29610,30470,31330,32190,33050,33910,34770,35630,36490,37350,38210,39070,39930,40790,41650,42510,43370]}],
-"Z-3":[{year:1991,min:1065,inc:54,stages:[1065,1119,1173,1227,1281,1335,1389,1443,1497,1551,1605,1659,1713,1767,1821,1875,1929,1983,2037,2091,2145,2199,2253,2307,2361,2415,2469,2523,2577,2631,2685]},{year:1994,min:1440,inc:73,stages:[1440,1513,1586,1659,1732,1805,1878,1951,2024,2097,2170,2243,2316,2389,2462,2535,2608,2681,2754,2827,2900,2973,3046,3119,3192,3265,3338,3411,3484,3557,3630]},{year:2001,min:2160,inc:110,stages:[2160,2270,2380,2490,2600,2710,2820,2930,3040,3150,3260,3370,3480,3590,3700,3810,3920,4030,4140,4250,4360,4470,4580,4690,4800,4910,5020,5130,5240,5350,5460]},{year:2005,min:2485,inc:125,stages:[2485,2610,2735,2860,2985,3110,3235,3360,3485,3610,3735,3860,3985,4110,4235,4360,4485,4610,4735,4860,4985,5110,5235,5360,5485,5610,5735,5860,5985,6110,6235]},{year:2007,min:2860,inc:145,stages:[2860,3005,3150,3295,3440,3585,3730,3875,4020,4165,4310,4455,4600,4745,4890,5035,5180,5325,5470,5615,5760,5905,6050,6195,6340,6485,6630,6775,6920,7065,7210]},{year:2008,min:3430,inc:175,stages:[3430,3605,3780,3955,4130,4305,4480,4655,4830,5005,5180,5355,5530,5705,5880,6055,6230,6405,6580,6755,6930,7105,7280,7455,7630,7805,7980,8155,8330,8505,8680]},{year:2011,min:5600,inc:290,stages:[5600,5890,6180,6470,6760,7050,7340,7630,7920,8210,8500,8790,9080,9370,9660,9950,10240,10530,10820,11110,11400,11690,11980,12270,12560,12850,13140,13430,13720,14010,14300]},{year:2015,min:7235,inc:375,stages:[7235,7610,7985,8360,8735,9110,9485,9860,10235,10610,10985,11360,11735,12110,12485,12860,13235,13610,13985,14360,14735,15110,15485,15860,16235,16610,16985,17360,17735,18110,18485]},{year:2016,min:8900,inc:470,stages:[8900,9370,9840,10310,10780,11250,11720,12190,12660,13130,13600,14070,14540,15010,15480,15950,16420,16890,17360,17830,18300,18770,19240,19710,20180,20650,21120,21590,22060,22530,23000]},{year:2017,min:12330,inc:645,stages:[12330,12975,13620,14265,14910,15555,16200,16845,17490,18135,18780,19425,20070,20715,21360,22005,22650,23295,23940,24585,25230,25875,26520,27165,27810,28455,29100,29745,30390,31035,31680]},{year:2022,min:18160,inc:950,stages:[18160,19110,20060,21010,21960,22910,23860,24810,25760,26710,27660,28610,29560,30510,31460,32410,33360,34310,35260,36210,37160,38110,39060,40010,40960,41910,42860,43810,44760,45710,46660]}],
-"Y-1":[{year:1991,min:1095,inc:60,stages:[1095,1155,1215,1275,1335,1395,1455,1515,1575,1635,1695,1755,1815,1875,1935,1995,2055,2115,2175,2235,2295,2355,2415,2475,2535,2595,2655,2715,2775,2835,2895]},{year:1994,min:1480,inc:81,stages:[1480,1561,1642,1723,1804,1885,1966,2047,2128,2209,2290,2371,2452,2533,2614,2695,2776,2857,2938,3019,3100,3181,3262,3343,3424,3505,3586,3667,3748,3829,3910]},{year:2001,min:2220,inc:120,stages:[2220,2340,2460,2580,2700,2820,2940,3060,3180,3300,3420,3540,3660,3780,3900,4020,4140,4260,4380,4500,4620,4740,4860,4980,5100,5220,5340,5460,5580,5700,5820]},{year:2005,min:2555,inc:140,stages:[2555,2695,2835,2975,3115,3255,3395,3535,3675,3815,3955,4095,4235,4375,4515,4655,4795,4935,5075,5215,5355,5495,5635,5775,5915,6055,6195,6335,6475,6615,6755]},{year:2007,min:2940,inc:160,stages:[2940,3100,3260,3420,3580,3740,3900,4060,4220,4380,4540,4700,4860,5020,5180,5340,5500,5660,5820,5980,6140,6300,6460,6620,6780,6940,7100,7260,7420,7580,7740]},{year:2008,min:3530,inc:190,stages:[3530,3720,3910,4100,4290,4480,4670,4860,5050,5240,5430,5620,5810,6000,6190,6380,6570,6760,6950,7140,7330,7520,7710,7900,8090,8280,8470,8660,8850,9040,9230]},{year:2011,min:5800,inc:320,stages:[5800,6120,6440,6760,7080,7400,7720,8040,8360,8680,9000,9320,9640,9960,10280,10600,10920,11240,11560,11880,12200,12520,12840,13160,13480,13800,14120,14440,14760,15080,15400]},{year:2015,min:7490,inc:415,stages:[7490,7905,8320,8735,9150,9565,9980,10395,10810,11225,11640,12055,12470,12885,13300,13715,14130,14545,14960,15375,15790,16205,16620,17035,17450,17865,18280,18695,19110,19525,19940]},{year:2016,min:9220,inc:510,stages:[9220,9730,10240,10750,11260,11770,12280,12790,13300,13810,14320,14830,15340,15850,16360,16870,17380,17890,18400,18910,19420,19930,20440,20950,21460,21970,22480,22990,23500,24010,24520]},{year:2017,min:12750,inc:700,stages:[12750,13450,14150,14850,15550,16250,16950,17650,18350,19050,19750,20450,21150,21850,22550,23250,23950,24650,25350,26050,26750,27450,28150,28850,29550,30250,30950,31650,32350,33050,33750]},{year:2022,min:18780,inc:1040,stages:[18780,19820,20860,21900,22940,23980,25020,26060,27100,28140,29180,30220,31260,32300,33340,34380,35420,36460,37500,38540,39580,40620,41660,42700,43740,44780,45820,46860,47900,48940,49980]}],
-"Y-2":[{year:1991,min:1140,inc:65,stages:[1140,1205,1270,1335,1400,1465,1530,1595,1660,1725,1790,1855,1920,1985,2050,2115,2180,2245,2310,2375,2440,2505,2570,2635,2700,2765,2830,2895,2960,3025,3090]},{year:1994,min:1540,inc:88,stages:[1540,1628,1716,1804,1892,1980,2068,2156,2244,2332,2420,2508,2596,2684,2772,2860,2948,3036,3124,3212,3300,3388,3476,3564,3652,3740,3828,3916,4004,4092,4180]},{year:2001,min:2310,inc:130,stages:[2310,2440,2570,2700,2830,2960,3090,3220,3350,3480,3610,3740,3870,4000,4130,4260,4390,4520,4650,4780,4910,5040,5170,5300,5430,5560,5690,5820,5950,6080,6210]},{year:2005,min:2655,inc:150,stages:[2655,2805,2955,3105,3255,3405,3555,3705,3855,4005,4155,4305,4455,4605,4755,4905,5055,5205,5355,5505,5655,5805,5955,6105,6255,6405,6555,6705,6855,7005,7155]},{year:2007,min:3055,inc:175,stages:[3055,3230,3405,3580,3755,3930,4105,4280,4455,4630,4805,4980,5155,5330,5505,5680,5855,6030,6205,6380,6555,6730,6905,7080,7255,7430,7605,7780,7955,8130,8305]},{year:2008,min:3665,inc:210,stages:[3665,3875,4085,4295,4505,4715,4925,5135,5345,5555,5765,5975,6185,6395,6605,6815,7025,7235,7445,7655,7865,8075,8285,8495,8705,8915,9125,9335,9545,9755,9965]},{year:2011,min:6000,inc:350,stages:[6000,6350,6700,7050,7400,7750,8100,8450,8800,9150,9500,9850,10200,10550,10900,11250,11600,11950,12300,12650,13000,13350,13700,14050,14400,14750,15100,15450,15800,16150,16500]},{year:2015,min:7750,inc:455,stages:[7750,8205,8660,9115,9570,10025,10480,10935,11390,11845,12300,12755,13210,13665,14120,14575,15030,15485,15940,16395,16850,17305,17760,18215,18670,19125,19580,20035,20490,20945,21400]},{year:2016,min:9540,inc:560,stages:[9540,10100,10660,11220,11780,12340,12900,13460,14020,14580,15140,15700,16260,16820,17380,17940,18500,19060,19620,20180,20740,21300,21860,22420,22980,23540,24100,24660,25220,25780,26340]},{year:2017,min:13205,inc:770,stages:[13205,13975,14745,15515,16285,17055,17825,18595,19365,20135,20905,21675,22445,23215,23985,24755,25525,26295,27065,27835,28605,29375,30145,30915,31685,32455,33225,33995,34765,35535,36305]},{year:2022,min:19450,inc:1140,stages:[19450,20590,21730,22870,24010,25150,26290,27430,28570,29710,30850,31990,33130,34270,35410,36550,37690,38830,39970,41110,42250,43390,44530,45670,46810,47950,49090,50230,51370,52510,53650]}],
-"Y-3":[{year:1991,min:1185,inc:72,stages:[1185,1257,1329,1401,1473,1545,1617,1689,1761,1833,1905,1977,2049,2121,2193,2265,2337,2409,2481,2553,2625,2697,2769,2841,2913,2985,3057,3129,3201,3273,3345]},{year:1994,min:1605,inc:97,stages:[1605,1702,1799,1896,1993,2090,2187,2284,2381,2478,2575,2672,2769,2866,2963,3060,3157,3254,3351,3448,3545,3642,3739,3836,3933,4030,4127,4224,4321,4418,4515]},{year:2001,min:2410,inc:145,stages:[2410,2555,2700,2845,2990,3135,3280,3425,3570,3715,3860,4005,4150,4295,4440,4585,4730,4875,5020,5165,5310,5455,5600,5745,5890,6035,6180,6325,6470,6615,6760]},{year:2005,min:2770,inc:165,stages:[2770,2935,3100,3265,3430,3595,3760,3925,4090,4255,4420,4585,4750,4915,5080,5245,5410,5575,5740,5905,6070,6235,6400,6565,6730,6895,7060,7225,7390,7555,7720]},{year:2007,min:3185,inc:190,stages:[3185,3375,3565,3755,3945,4135,4325,4515,4705,4895,5085,5275,5465,5655,5845,6035,6225,6415,6605,6795,6985,7175,7365,7555,7745,7935,8125,8315,8505,8695,8885]},{year:2008,min:3820,inc:230,stages:[3820,4050,4280,4510,4740,4970,5200,5430,5660,5890,6120,6350,6580,6810,7040,7270,7500,7730,7960,8190,8420,8650,8880,9110,9340,9570,9800,10030,10260,10490,10720]},{year:2011,min:6200,inc:380,stages:[6200,6580,6960,7340,7720,8100,8480,8860,9240,9620,10000,10380,10760,11140,11520,11900,12280,12660,13040,13420,13800,14180,14560,14940,15320,15700,16080,16460,16840,17220,17600]},{year:2015,min:8015,inc:495,stages:[8015,8510,9005,9500,9995,10490,10985,11480,11975,12470,12965,13460,13955,14450,14945,15440,15935,16430,16925,17420,17915,18410,18905,19400,19895,20390,20885,21380,21875,22370,22865]},{year:2016,min:9860,inc:610,stages:[9860,10470,11080,11690,12300,12910,13520,14130,14740,15350,15960,16570,17180,17790,18400,19010,19620,20230,20840,21450,22060,22670,23280,23890,24500,25110,25720,26330,26940,27550,28160]},{year:2017,min:13680,inc:840,stages:[13680,14520,15360,16200,17040,17880,18720,19560,20400,21240,22080,22920,23760,24600,25440,26280,27120,27960,28800,29640,30480,31320,32160,33000,33840,34680,35520,36360,37200,38040,38880]},{year:2022,min:20140,inc:1240,stages:[20140,21380,22620,23860,25100,26340,27580,28820,30060,31300,32540,33780,35020,36260,37500,38740,39980,41220,42460,43700,44940,46180,47420,48660,49900,51140,52380,53620,54860,56100,57340]}],
-"Y-4":[{year:1991,min:1275,inc:86,stages:[1275,1361,1447,1533,1619,1705,1791,1877,1963,2049,2135,2221,2307,2393,2479,2565,2651,2737,2823,2909,2995,3081,3167,3253,3339,3425,3511,3597,3683,3769,3855]},{year:1994,min:1725,inc:116,stages:[1725,1841,1957,2073,2189,2305,2421,2537,2653,2769,2885,3001,3117,3233,3349,3465,3581,3697,3813,3929,4045,4161,4277,4393,4509,4625,4741,4857,4973,5089,5205]},{year:2001,min:2590,inc:175,stages:[2590,2765,2940,3115,3290,3465,3640,3815,3990,4165,4340,4515,4690,4865,5040,5215,5390,5565,5740,5915,6090,6265,6440,6615,6790,6965,7140,7315,7490,7665,7840]},{year:2005,min:2980,inc:200,stages:[2980,3180,3380,3580,3780,3980,4180,4380,4580,4780,4980,5180,5380,5580,5780,5980,6180,6380,6580,6780,6980,7180,7380,7580,7780,7980,8180,8380,8580,8780,8980]},{year:2007,min:3430,inc:230,stages:[3430,3660,3890,4120,4350,4580,4810,5040,5270,5500,5730,5960,6190,6420,6650,6880,7110,7340,7570,7800,8030,8260,8490,8720,8950,9180,9410,9640,9870,10100,10330]},{year:2008,min:4115,inc:275,stages:[4115,4390,4665,4940,5215,5490,5765,6040,6315,6590,6865,7140,7415,7690,7965,8240,8515,8790,9065,9340,9615,9890,10165,10440,10715,10990,11265,11540,11815,12090,12365]},{year:2011,min:6600,inc:460,stages:[6600,7060,7520,7980,8440,8900,9360,9820,10280,10740,11200,11660,12120,12580,13040,13500,13960,14420,14880,15340,15800,16260,16720,17180,17640,18100,18560,19020,19480,19940,20400]},{year:2015,min:8540,inc:595,stages:[8540,9135,9730,10325,10920,11515,12110,12705,13300,13895,14490,15085,15680,16275,16870,17465,18060,18655,19250,19845,20440,21035,21630,22225,22820,23415,24010,24605,25200,25795,26390]},{year:2016,min:10510,inc:740,stages:[10510,11250,11990,12730,13470,14210,14950,15690,16430,17170,17910,18650,19390,20130,20870,21610,22350,23090,23830,24570,25310,26050,26790,27530,28270,29010,29750,30490,31230,31970,32710]},{year:2017,min:14625,inc:1015,stages:[14625,15640,16655,17670,18685,19700,20715,21730,22745,23760,24775,25790,26805,27820,28835,29850,30865,31880,32895,33910,34925,35940,36955,37970,38985,40000,41015,42030,43045,44060,45075]},{year:2022,min:21530,inc:1500,stages:[21530,23030,24530,26030,27530,29030,30530,32030,33530,35030,36530,38030,39530,41030,42530,44030,45530,47030,48530,50030,51530,53030,54530,56030,57530,59030,60530,62030,63530,65030,66530]}],
-"X-1":[{year:1991,min:1654,inc:107,stages:[1654,1761,1868,1975,2082,2189,2296,2403,2510,2617,2724,2831,2938,3045,3152,3259,3366,3473,3580,3687,3794,3901,4008,4115,4222,4329,4436,4543,4650,4757,4864]},{year:1994,min:2238,inc:144,stages:[2238,2382,2526,2670,2814,2958,3102,3246,3390,3534,3678,3822,3966,4110,4254,4398,4542,4686,4830,4974,5118,5262,5406,5550,5694,5838,5982,6126,6270,6414,6558]},{year:2001,min:3360,inc:215,stages:[3360,3575,3790,4005,4220,4435,4650,4865,5080,5295,5510,5725,5940,6155,6370,6585,6800,7015,7230,7445,7660,7875,8090,8305,8520,8735,8950,9165,9380,9595,9810]},{year:2005,min:3865,inc:245,stages:[3865,4110,4355,4600,4845,5090,5335,5580,5825,6070,6315,6560,6805,7050,7295,7540,7785,8030,8275,8520,8765,9010,9255,9500,9745,9990,10235,10480,10725,10970,11215]},{year:2007,min:4445,inc:280,stages:[4445,4725,5005,5285,5565,5845,6125,6405,6685,6965,7245,7525,7805,8085,8365,8645,8925,9205,9485,9765,10045,10325,10605,10885,11165,11445,11725,12005,12285,12565,12845]},{year:2008,min:5335,inc:335,stages:[5335,5670,6005,6340,6675,7010,7345,7680,8015,8350,8685,9020,9355,9690,10025,10360,10695,11030,11365,11700,12035,12370,12705,13040,13375,13710,14045,14380,14715,15050,15385]},{year:2011,min:8000,inc:550,stages:[8000,8550,9100,9650,10200,10750,11300,11850,12400,12950,13500,14050,14600,15150,15700,16250,16800,17350,17900,18450,19000,19550,20100,20650,21200,21750,22300,22850,23400,23950,24500]},{year:2015,min:10400,inc:710,stages:[10400,11110,11820,12530,13240,13950,14660,15370,16080,16790,17500,18210,18920,19630,20340,21050,21760,22470,23180,23890,24600,25310,26020,26730,27440,28150,28860,29570,30280,30990,31700]},{year:2016,min:12780,inc:880,stages:[12780,13660,14540,15420,16300,17180,18060,18940,19820,20700,21580,22460,23340,24220,25100,25980,26860,27740,28620,29500,30380,31260,32140,33020,33900,34780,35660,36540,37420,38300,39180]},{year:2017,min:18115,inc:1215,stages:[18115,19330,20545,21760,22975,24190,25405,26620,27835,29050,30265,31480,32695,33910,35125,36340,37555,38770,39985,41200,42415,43630,44845,46060,47275,48490,49705,50920,52135,53350,54565]},{year:2022,min:26640,inc:1790,stages:[26640,28430,30220,32010,33800,35590,37380,39170,40960,42750,44540,46330,48120,49910,51700,53490,55280,57070,58860,60650,62440,64230,66020,67810,69600,71390,73180,74970,76760,78550,80340]}],
-"X-2":[{year:1991,min:1768,inc:119,stages:[1768,1887,2006,2125,2244,2363,2482,2601,2720,2839,2958,3077,3196,3315,3434,3553,3672,3791,3910,4029,4148,4267,4386,4505,4624,4743,4862,4981,5100,5219,5338]},{year:1994,min:2387,inc:161,stages:[2387,2548,2709,2870,3031,3192,3353,3514,3675,3836,3997,4158,4319,4480,4641,4802,4963,5124,5285,5446,5607,5768,5929,6090,6251,6412,6573,6734,6895,7056,7217]},{year:2001,min:3580,inc:240,stages:[3580,3820,4060,4300,4540,4780,5020,5260,5500,5740,5980,6220,6460,6700,6940,7180,7420,7660,7900,8140,8380,8620,8860,9100,9340,9580,9820,10060,10300,10540,10780]},{year:2005,min:4115,inc:275,stages:[4115,4390,4665,4940,5215,5490,5765,6040,6315,6590,6865,7140,7415,7690,7965,8240,8515,8790,9065,9340,9615,9890,10165,10440,10715,10990,11265,11540,11815,12090,12365]},{year:2007,min:4730,inc:315,stages:[4730,5045,5360,5675,5990,6305,6620,6935,7250,7565,7880,8195,8510,8825,9140,9455,9770,10085,10400,10715,11030,11345,11660,11975,12290,12605,12920,13235,13550,13865,14180]},{year:2008,min:5675,inc:380,stages:[5675,6055,6435,6815,7195,7575,7955,8335,8715,9095,9475,9855,10235,10615,10995,11375,11755,12135,12515,12895,13275,13655,14035,14415,14795,15175,15555,15935,16315,16695,17075]},{year:2011,min:8600,inc:610,stages:[8600,9210,9820,10430,11040,11650,12260,12870,13480,14090,14700,15310,15920,16530,17140,17750,18360,18970,19580,20190,20800,21410,22020,22630,23240,23850,24460,25070,25680,26290,26900]},{year:2015,min:11175,inc:790,stages:[11175,11965,12755,13545,14335,15125,15915,16705,17495,18285,19075,19865,20655,21445,22235,23025,23815,24605,25395,26185,26975,27765,28555,29345,30135,30925,31715,32505,33295,34085,34875]},{year:2016,min:13740,inc:980,stages:[13740,14720,15700,16680,17660,18640,19620,20600,21580,22560,23540,24520,25500,26480,27460,28440,29420,30400,31380,32360,33340,34320,35300,36280,37260,38240,39220,40200,41180,42160,43140]},{year:2017,min:19415,inc:1360,stages:[19415,20775,22135,23495,24855,26215,27575,28935,30295,31655,33015,34375,35735,37095,38455,39815,41175,42535,43895,45255,46615,47975,49335,50695,52055,53415,54775,56135,57495,58855,60215]},{year:2022,min:28560,inc:2010,stages:[28560,30570,32580,34590,36600,38610,40620,42630,44640,46650,48660,50670,52680,54690,56700,58710,60720,62730,64740,66750,68760,70770,72780,74790,76800,78810,80820,82830,84840,86850,88860]}],
-"X-3":[{year:1991,min:1882,inc:131,stages:[1882,2013,2144,2275,2406,2537,2668,2799,2930,3061,3192,3323,3454,3585,3716,3847,3978,4109,4240,4371,4502,4633,4764,4895,5026,5157,5288,5419,5550,5681,5812]},{year:1994,min:2544,inc:177,stages:[2544,2721,2898,3075,3252,3429,3606,3783,3960,4137,4314,4491,4668,4845,5022,5199,5376,5553,5730,5907,6084,6261,6438,6615,6792,6969,7146,7323,7500,7677,7854]},{year:2001,min:3815,inc:265,stages:[3815,4080,4345,4610,4875,5140,5405,5670,5935,6200,6465,6730,6995,7260,7525,7790,8055,8320,8585,8850,9115,9380,9645,9910,10175,10440,10705,10970,11235,11500,11765]},{year:2005,min:4385,inc:305,stages:[4385,4690,4995,5300,5605,5910,6215,6520,6825,7130,7435,7740,8045,8350,8655,8960,9265,9570,9875,10180,10485,10790,11095,11400,11705,12010,12315,12620,12925,13230,13535]},{year:2007,min:5045,inc:350,stages:[5045,5395,5745,6095,6445,6795,7145,7495,7845,8195,8545,8895,9245,9595,9945,10295,10645,10995,11345,11695,12045,12395,12745,13095,13445,13795,14145,14495,14845,15195,15545]},{year:2008,min:6055,inc:420,stages:[6055,6475,6895,7315,7735,8155,8575,8995,9415,9835,10255,10675,11095,11515,11935,12355,12775,13195,13615,14035,14455,14875,15295,15715,16135,16555,16975,17395,17815,18235,18655]},{year:2011,min:9200,inc:700,stages:[9200,9900,10600,11300,12000,12700,13400,14100,14800,15500,16200,16900,17600,18300,19000,19700,20400,21100,21800,22500,23200,23900,24600,25300,26000,26700,27400,28100,28800,29500,30200]},{year:2015,min:11950,inc:905,stages:[11950,12855,13760,14665,15570,16475,17380,18285,19190,20095,21000,21905,22810,23715,24620,25525,26430,27335,28240,29145,30050,30955,31860,32765,33670,34575,35480,36385,37290,38195,39100]},{year:2016,min:14690,inc:1120,stages:[14690,15810,16930,18050,19170,20290,21410,22530,23650,24770,25890,27010,28130,29250,30370,31490,32610,33730,34850,35970,37090,38210,39330,40450,41570,42690,43810,44930,46050,47170,48290]},{year:2017,min:20745,inc:1540,stages:[20745,22285,23825,25365,26905,28445,29985,31525,33065,34605,36145,37685,39225,40765,42305,43845,45385,46925,48465,50005,51545,53085,54625,56165,57705,59245,60785,62325,63865,65405,66945]},{year:2022,min:30520,inc:2270,stages:[30520,32790,35060,37330,39600,41870,44140,46410,48680,50950,53220,55490,57760,60030,62300,64570,66840,69110,71380,73650,75920,78190,80460,82730,85000,87270,89540,91810,94080,96350,98620]}],
-"X-4":[{year:1991,min:2897,inc:146,stages:[2897,3043,3189,3335,3481,3627,3773,3919,4065,4211,4357,4503,4649,4795,4941,5087,5233,5379,5525,5671,5817,5963,6109,6255,6401,6547,6693,6839,6985,7131,7277]},{year:1994,min:3914,inc:197,stages:[3914,4111,4308,4505,4702,4899,5096,5293,5490,5687,5884,6081,6278,6475,6672,6869,7066,7263,7460,7657,7854,8051,8248,8445,8642,8839,9036,9233,9430,9627,9824]},{year:2001,min:5870,inc:295,stages:[5870,6165,6460,6755,7050,7345,7640,7935,8230,8525,8820,9115,9410,9705,10000,10295,10590,10885,11180,11475,11770,12065,12360,12655,12950,13245,13540,13835,14130,14425,14720]},{year:2005,min:6750,inc:340,stages:[6750,7090,7430,7770,8110,8450,8790,9130,9470,9810,10150,10490,10830,11170,11510,11850,12190,12530,12870,13210,13550,13890,14230,14570,14910,15250,15590,15930,16270,16610,16950]},{year:2007,min:7765,inc:390,stages:[7765,8155,8545,8935,9325,9715,10105,10495,10885,11275,11665,12055,12445,12835,13225,13615,14005,14395,14785,15175,15565,15955,16345,16735,17125,17515,17905,18295,18685,19075,19465]},{year:2008,min:9320,inc:470,stages:[9320,9790,10260,10730,11200,11670,12140,12610,13080,13550,14020,14490,14960,15430,15900,16370,16840,17310,17780,18250,18720,19190,19660,20130,20600,21070,21540,22010,22480,22950,23420]},{year:2011,min:14000,inc:800,stages:[14000,14800,15600,16400,17200,18000,18800,19600,20400,21200,22000,22800,23600,24400,25200,26000,26800,27600,28400,29200,30000,30800,31600,32400,33200,34000,34800,35600,36400,37200,38000]},{year:2015,min:18200,inc:1035,stages:[18200,19235,20270,21305,22340,23375,24410,25445,26480,27515,28550,29585,30620,31655,32690,33725,34760,35795,36830,37865,38900,39935,40970,42005,43040,44075,45110,46145,47180,48215,49250]},{year:2016,min:22370,inc:1280,stages:[22370,23650,24930,26210,27490,28770,30050,31330,32610,33890,35170,36450,37730,39010,40290,41570,42850,44130,45410,46690,47970,49250,50530,51810,53090,54370,55650,56930,58210,59490,60770]},{year:2017,min:31690,inc:1750,stages:[31690,33440,35190,36940,38690,40440,42190,43940,45690,47440,49190,50940,52690,54440,56190,57940,59690,61440,63190,64940,66690,68440,70190,71940,73690,75440,77190,78940,80690,82440,84190]},{year:2022,min:46610,inc:2580,stages:[46610,49190,51770,54350,56930,59510,62090,64670,67250,69830,72410,74990,77570,80150,82730,85310,87890,90470,93050,95630,98210,100790,103370,105950,108530,111110,113690,116270,118850,121430,124010]}]
-};
-
-/* ================================================================
-   COMPLETE PAY EVENTS (Chronological Order)
-   ================================================================ */
-const PAY_EVENTS=[
-  // 1991-1993: Only revision at start
-  {date:'01/07/1994',type:'rev',label:'Pay Revised on 01/07/1994',scaleYear:1994},
-  {date:'01/12/1994',type:'inc',label:'Annual Inc on 01/12/1994'},
-  {date:'01/12/1995',type:'inc',label:'Annual Inc on 01/12/1995'},
-  {date:'01/12/1996',type:'inc',label:'Annual Inc on 01/12/1996'},
-  {date:'01/12/1997',type:'inc',label:'Annual Inc on 01/12/1997'},
-  {date:'01/12/1998',type:'inc',label:'Annual Inc on 01/12/1998'},
-  {date:'01/12/1999',type:'inc',label:'Annual Inc on 01/12/1999'},
-  {date:'01/12/2000',type:'inc',label:'Annual Inc on 01/12/2000'},
-  // 2001 revision (24 Dec) + annual inc
-  {date:'01/12/2001',type:'inc',label:'Annual Inc on 01/12/2001'},
-  {date:'24/12/2001',type:'rev',label:'Pay Revised on 24/12/2001',scaleYear:2001},
-  // 2002-2004: Annual increments
-  {date:'01/12/2002',type:'inc',label:'Annual Inc on 01/12/2002'},
-  {date:'01/12/2003',type:'inc',label:'Annual Inc on 01/12/2003'},
-  {date:'01/12/2004',type:'inc',label:'Annual Inc on 01/12/2004'},
-  // 2005 revision + annual inc
-  {date:'01/07/2005',type:'rev',label:'Pay Revised on 01/07/2005',scaleYear:2005},
-  {date:'01/12/2005',type:'inc',label:'Annual Inc on 01/12/2005'},
-  // 2006: Annual increment
-  {date:'01/12/2006',type:'inc',label:'Annual Inc on 01/12/2006'},
-  // 2007 revision + annual inc
-  {date:'01/07/2007',type:'rev',label:'Pay Revised on 01/07/2007',scaleYear:2007},
-  {date:'01/12/2007',type:'inc',label:'Annual Inc on 01/12/2007'},
-  // 2008 revision + annual inc
-  {date:'01/07/2008',type:'rev',label:'Pay Revised on 01/07/2008',scaleYear:2008},
-  {date:'01/12/2008',type:'inc',label:'Annual Inc on 01/12/2008'},
-  // 2009-2010: Annual increments
-  {date:'01/12/2009',type:'inc',label:'Annual Inc on 01/12/2009'},
-  {date:'01/12/2010',type:'inc',label:'Annual Inc on 01/12/2010'},
-  // 2011 revision + annual inc
-  {date:'01/07/2011',type:'rev',label:'Pay Revised on 01/07/2011',scaleYear:2011},
-  {date:'01/12/2011',type:'inc',label:'Annual Inc on 01/12/2011'},
-  // 2012-2014: Annual increments
-  {date:'01/12/2012',type:'inc',label:'Annual Inc on 01/12/2012'},
-  {date:'01/12/2013',type:'inc',label:'Annual Inc on 01/12/2013'},
-  {date:'01/12/2014',type:'inc',label:'Annual Inc on 01/12/2014'},
-  // 2015 revision + annual inc
-  {date:'01/07/2015',type:'rev',label:'Pay Revised on 01/07/2015',scaleYear:2015},
-  {date:'01/12/2015',type:'inc',label:'Annual Inc on 01/12/2015'},
-  // 2016 revision + annual inc
-  {date:'01/07/2016',type:'rev',label:'Pay Revised on 01/07/2016',scaleYear:2016},
-  {date:'01/12/2016',type:'inc',label:'Annual Inc on 01/12/2016'},
-  // 2017 revision + annual inc
-  {date:'01/07/2017',type:'rev',label:'Pay Revised on 01/07/2017',scaleYear:2017},
-  {date:'01/12/2017',type:'inc',label:'Annual Inc on 01/12/2017'},
-  // 2018-2021: Annual increments
-  {date:'01/12/2018',type:'inc',label:'Annual Inc on 01/12/2018'},
-  {date:'01/12/2019',type:'inc',label:'Annual Inc on 01/12/2019'},
-  {date:'01/12/2020',type:'inc',label:'Annual Inc on 01/12/2020'},
-  {date:'01/12/2021',type:'inc',label:'Annual Inc on 01/12/2021'},
-  // 2022 revision + annual inc
-  {date:'01/07/2022',type:'rev',label:'Pay Revised on 01/07/2022',scaleYear:2022},
-  {date:'01/12/2022',type:'inc',label:'Annual Inc on 01/12/2022'},
-  // 2023-2026: Annual increments
-  {date:'01/12/2023',type:'inc',label:'Annual Inc on 01/12/2023'},
-  {date:'01/12/2024',type:'inc',label:'Annual Inc on 01/12/2024'},
-  {date:'01/12/2025',type:'inc',label:'Annual Inc on 01/12/2025'},
-  {date:'01/12/2026',type:'inc',label:'Annual Inc on 01/12/2026'}
-];
-
-/* ================================================================
-   HELPER FUNCTIONS
-   ================================================================ */
-const REV_EFFECTIVE_DATES={};
-PAY_EVENTS.forEach(ev=>{if(ev.type==='rev'&&ev.scaleYear){if(!REV_EFFECTIVE_DATES[ev.scaleYear]){REV_EFFECTIVE_DATES[ev.scaleYear]=ev.date;}}});
-
-function pD(s){if(!s)return null;s=s.trim();if(s.match(/^\d{4}-\d{2}-\d{2}$/)){const p=s.split('-');s=p[2]+'/'+p[1]+'/'+p[0];}const p=s.split('/');if(p.length!==3)return null;const d=new Date(+p[2],+p[1]-1,+p[0]);return isNaN(d.getTime())?null:d;}
-function fD(d){if(!d)return'';return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
-function jN(d){return(d.getMonth()+1)>=6&&(d.getMonth()+1)<=11;}
-function gSR(s){return PAY_SCALES[s]||[];}
-function gSE(s,y){return gSR(s).find(r=>r.year===y)||null;}
-function gARY(s,bd){const revisions=gSR(s);let effective=null;for(const rev of revisions){const effDateStr=REV_EFFECTIVE_DATES[rev.year];const effDate=effDateStr?pD(effDateStr):null;if(effDate&&effDate<=bd){effective=rev;}else if(!effDate&&rev.year<=bd.getFullYear()){effective=rev;}}return effective?effective.year:(revisions.length>0?revisions[0].year:null);}
-function gSI(s,sy,p){const r=gSE(s,sy);if(!r)return 0;const i=r.stages.indexOf(p);return i>=0?i:0;}
-function fOR(s,o,n,p){const or=gSE(s,o),nr=gSE(s,n);if(!or||!nr)return p;const si=gSI(s,o,p);return nr.stages[Math.min(si,nr.stages.length-1)];}
-function aI(s,sy,p){const r=gSE(s,sy);if(!r)return p;const ci=gSI(s,sy,p);return ci>=r.stages.length-1?r.stages[r.stages.length-1]:r.stages[ci+1];}
-function aMI(s,sy,p,c){let pp=p;for(let i=0;i<c;i++){const pr=pp;pp=aI(s,sy,pp);if(pp===pr)break;}return pp;}
-function iMS(s,sy,p){const r=gSE(s,sy);return!!r&&p>=r.stages[r.stages.length-1];}
-function gSS(s,sy){const r=gSE(s,sy);return r?`${r.min}-${r.inc}-${r.stages[r.stages.length-1]}`:'';}
-function gInc(s,sy){const r=gSE(s,sy);return r?r.inc:0;}
-function fNH(s,sy,amt){const r=gSE(s,sy);if(!r)return amt;for(const st of r.stages){if(st>=amt)return st;}return r.stages[r.stages.length-1];}
-
-function initScaleDropdown(){
-  const sel=document.getElementById('inp_scale');
-  sel.innerHTML='<option value="">-- Select Pay Scale --</option>'+Object.keys(PAY_SCALES).sort().map(s=>`<option value="${s}">${s}</option>`).join('');
-}
-initScaleDropdown();
-
-/* ================================================================
-   GLOBAL STATE
-   ================================================================ */
-let G_R=[],G_MD=null,G_RD=null,G_IS='',G_MA=null,G_MI=null;
-let G_PENDING_DELETE_IDX=null;
-
-/* ================================================================
-   CONFIRMATION DIALOG
-   ================================================================ */
-function confirmDeleteRow(idx){G_PENDING_DELETE_IDX=idx;const row=G_R[idx];if(row){document.getElementById('confirm_detail').textContent=`Entry: ${row.eventLabel}`;}document.getElementById('confirm_modal').classList.add('active');}
-function closeConfirmModal(){document.getElementById('confirm_modal').classList.remove('active');G_PENDING_DELETE_IDX=null;}
-function confirmDelete(){if(G_PENDING_DELETE_IDX!==null){G_R.splice(G_PENDING_DELETE_IDX,1);renderTable();}closeConfirmModal();}
-
-/* ================================================================
-   MAIN CALCULATION
-   ================================================================ */
-function calculatePay(){
-  const mustred=document.getElementById('inp_mustred').value;
-  const retire=document.getElementById('inp_retire').value;
-  const scale=document.getElementById('inp_scale').value;
-  document.getElementById('error_area').classList.add('hidden');
-  document.getElementById('result_area').classList.add('hidden');
-  if(!mustred||!retire||!scale){showErr('Please fill all fields.');return;}
-  const mD=pD(mustred),rD=pD(retire);
-  if(!mD||!rD){showErr('Invalid date format.');return;}
-  if(rD<=mD){showErr('Retirement date must be after mustered date.');return;}
-  if(!gSR(scale).length){showErr('Scale not found.');return;}
-  G_MD=mD;G_RD=rD;G_IS=scale;
-  const iRY=gARY(scale,mD);
-  if(!iRY){showErr('No applicable scale revision found for this date.');return;}
-  const iR=gSE(scale,iRY),mJN=jN(mD),iP=iR.stages[0];
-  let cP=iP,cS=scale,cRY=iRY;
-  const rows=[{id:'r1',eventLabel:`Mustered in Scale ${scale}`,date:mD,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:0,remark:'Initial Stage 0',type:'mustered',skipNextInc:mJN}];
-  let sk=mJN;
-  for(const ev of PAY_EVENTS){
-    const ed=pD(ev.date);
-    if(!ed||ed<=mD||ed>rD)continue;
-    if(ev.type==='inc'){
-      if(sk){sk=false;rows.push({id:'r'+Date.now()+Math.random(),eventLabel:ev.label+' (Skip)',date:ed,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:0,remark:'Jun-Nov Skip',type:'inc-skip'});continue;}
-      if(iMS(cS,cRY,cP)){rows.push({id:'r'+Date.now()+Math.random(),eventLabel:ev.label+' (Max)',date:ed,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:0,remark:'Max Stage',type:'inc'});continue;}
-      const pr=cP;cP=aI(cS,cRY,cP);
-      rows.push({id:'r'+Date.now()+Math.random(),eventLabel:ev.label,date:ed,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:cP-pr,remark:'Inc',type:'inc'});
-    }else if(ev.type==='rev'){
-      if(!gSE(cS,ev.scaleYear))continue;
-      const pr=cP,oRY=cRY;cRY=ev.scaleYear;cP=fOR(cS,oRY,cRY,pr);
-      rows.push({id:'r'+Date.now()+Math.random(),eventLabel:ev.label,date:ed,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:cP-pr,remark:'Revision',type:'rev'});
+    function showToast(msg, isError = false) {
+        const toast = document.getElementById('toastMsg');
+        toast.style.background = isError ? '#c0392b' : '#2c5364';
+        toast.innerText = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => toast.style.opacity = '0', 3000);
     }
-  }
-  const rJN=jN(rD);
-  if(rJN&&!iMS(cS,cRY,cP)){const pr=cP;cP=aI(cS,cRY,cP);rows.push({id:'r'+Date.now()+Math.random(),eventLabel:'Pension Increment',date:rD,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:cP-pr,remark:'Retired Jun-Nov',type:'pension'});}
-  G_R=rows;updateFinalPayCard();renderTable();
-  document.getElementById('result_area').classList.remove('hidden');
-  document.getElementById('result_area').scrollIntoView({behavior:'smooth'});
-}
+    function stopScanner() { if (activeScanner) { Quagga.stop(); activeScanner = null; } }
+    function isValidBarcode(code) { return code && (/^\d{13}$/.test(code) || /^\d{8}$/.test(code) || /^[a-zA-Z0-9]{4,20}$/.test(code)); }
 
-function updateFinalPayCard(){
-  if(!G_R.length)return;
-  const lR=G_R[G_R.length-1],rJN=jN(G_RD);
-  document.getElementById('summary_boxes').innerHTML=`
-    <div class="final-pay-card">
-      <div class="card-label">Final Basic Pay at Retirement</div>
-      <div class="card-amount">Rs. ${lR.pay.toLocaleString()}</div>
-      <div class="card-detail">Scale: ${lR.scale} | Retirement: ${fD(G_RD)}${rJN?' | Pension Added':''}</div>
-    </div>`;
-}
+    // Firebase data loading
+    async function loadAllItems() {
+        const snapshot = await getDocs(collection(window.db, "inventory"));
+        allItems = [];
+        snapshot.forEach(docSnap => { allItems.push({ id: docSnap.id, ...docSnap.data() }); });
+    }
+    async function loadCategories() {
+        const snapshot = await getDocs(collection(window.db, "categories"));
+        allCategories = [];
+        snapshot.forEach(docSnap => { allCategories.push({ id: docSnap.id, name: docSnap.data().name }); });
+        if (allCategories.length === 0) {
+            const defaults = ["Books", "Copies", "Registers", "Pencils", "Sharpeners", "Ball Points"];
+            for (let cat of defaults) await addDoc(collection(window.db, "categories"), { name: cat });
+            await loadCategories();
+        }
+        updateCategoryDropdowns();
+    }
+    function updateCategoryDropdowns() {
+        const select = document.getElementById('newItemCategory');
+        if (select) {
+            select.innerHTML = '<option value="">Select Category</option>';
+            allCategories.forEach(cat => { select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`; });
+        }
+        const filter = document.getElementById('categoryFilter');
+        if (filter) {
+            filter.innerHTML = '<option value="">All Categories</option>';
+            allCategories.forEach(cat => { filter.innerHTML += `<option value="${cat.id}">${cat.name}</option>`; });
+        }
+    }
+    async function loadCustomers() {
+        const snapshot = await getDocs(collection(window.db, "customers"));
+        allCustomers = [];
+        snapshot.forEach(docSnap => { allCustomers.push({ id: docSnap.id, ...docSnap.data() }); });
+        const select = document.getElementById('customerSelect');
+        if (select) {
+            select.innerHTML = '<option value="">-- Select Customer --</option>';
+            allCustomers.forEach(cust => { select.innerHTML += `<option value="${cust.id}">${cust.name} (Bal: ${(cust.previousBalance||0).toFixed(2)} PKR)</option>`; });
+            select.onchange = async (e) => {
+                const id = e.target.value;
+                if(id){ const snap = await getDoc(doc(window.db, "customers", id)); if(snap.exists()){ currentCustomer = { id, ...snap.data() }; document.getElementById('prevBalanceDisplay').innerText = currentCustomer.previousBalance.toFixed(2) + " PKR"; computeTotals(); } }
+                else { currentCustomer = { id: null, name: '', previousBalance: 0 }; document.getElementById('prevBalanceDisplay').innerText = '0.00 PKR'; computeTotals(); }
+            };
+        }
+        renderCustomerList();
+    }
+    function renderCustomerList() {
+        const searchTerm = document.getElementById('customerSearchInput')?.value.toLowerCase() || '';
+        const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(searchTerm));
+        const container = document.getElementById('customersList');
+        if(container) container.innerHTML = filtered.map(c => `<div class="list-item"><i class="fas fa-user"></i> <strong>${c.name}</strong><div>Balance: ${(c.previousBalance||0).toFixed(2)} PKR</div><button class="btn-outline payment-btn" data-id="${c.id}" data-name="${c.name}" data-balance="${c.previousBalance||0}"><i class="fas fa-money-bill-wave"></i> Record Payment</button></div>`).join('');
+        document.querySelectorAll('.payment-btn').forEach(btn => btn.addEventListener('click', () => { openPaymentModal(btn.dataset.id, btn.dataset.name, parseFloat(btn.dataset.balance)); }));
+    }
+    function openPaymentModal(id, name, balance) {
+        document.getElementById('paymentCustomerName').innerText = name;
+        document.getElementById('paymentCurrentBalance').innerText = balance.toFixed(2);
+        document.getElementById('paymentAmount').value = '';
+        document.getElementById('paymentModal').style.display = 'flex';
+        window.paymentData = { id, name, balance };
+    }
+    async function recordPayment() {
+        const amount = parseFloat(document.getElementById('paymentAmount').value);
+        if (isNaN(amount) || amount <= 0) { showToast("Invalid amount", true); return; }
+        const { id, name, balance } = window.paymentData;
+        const newBalance = balance - amount;
+        if (newBalance < 0) { showToast("Payment exceeds balance", true); return; }
+        await updateDoc(doc(window.db, "customers", id), { previousBalance: newBalance });
+        showToast(`Received ${amount} PKR from ${name}. New balance: ${newBalance.toFixed(2)}`);
+        document.getElementById('paymentModal').style.display = 'none';
+        await loadCustomers();
+        if (currentCustomer.id === id) { currentCustomer.previousBalance = newBalance; computeTotals(); }
+    }
+    async function loadLedger() {
+        const q = query(collection(window.db, "ledger"), orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+        const container = document.getElementById('ledgerList');
+        if(container) container.innerHTML = '';
+        snapshot.forEach(docSnap => { const data = docSnap.data(); container.innerHTML += `<div class="list-item" onclick="alert('Bill: ${JSON.stringify(data)}')"><i class="fas fa-receipt"></i> <strong>${data.customerName}</strong><br>${new Date(data.timestamp).toLocaleString()}<br>Total: ${data.grandTotal} PKR</div>`; });
+    }
 
-function renderTable(){
-  G_R.forEach((r,i)=>r.sno=i+1);
-  const lR=G_R[G_R.length-1];
-  let h=`<table class="pay-table"><thead><tr><th>S.No</th><th>Pay Details</th><th>Pay Scale</th><th>Basic Pay (Rs)</th><th>Change (Rs)</th><th>Remarks</th><th>Actions</th></tr></thead><tbody>`;
-  G_R.forEach((r,idx)=>{
-    const rc=getRC(r.type),sc=gSS(r.scale,r.scaleRevYear);
-    const cc=r.changeAmt>0?'td-chg pos':(r.changeAmt<0?'td-chg neg':'td-chg');
-    const ct=r.changeAmt>0?'+'+r.changeAmt.toLocaleString():(r.changeAmt<0?r.changeAmt.toLocaleString():'—');
-    h+=`<tr class="${rc}"><td class="td-sno">${r.sno}</td><td class="td-event">${r.eventLabel}</td><td class="td-scale">${r.scale}<br><small>(${sc})</small></td><td class="td-pay">${r.pay.toLocaleString()}</td><td class="${cc}">${ct}</td><td class="td-remark">${r.remark}</td><td class="td-actions"><button class="action-btn view-btn" title="View" onclick="viewRow(${idx})">🔍</button><button class="action-btn add-btn" title="Add" onclick="showActionMenu(${idx},event)">+</button><button class="action-btn delete-btn" title="Delete" onclick="confirmDeleteRow(${idx})">✕</button></td></tr>`;
-  });
-  h+=`</tbody></table>`;
-  if(lR){h+=`<div class="pay-summary-footer"><b>Final Basic Pay at Retirement:</b> <span style="font-weight:700;margin:0 8px;">Rs. ${lR.pay.toLocaleString()}</span> | <b>Scale:</b> ${lR.scale} | <b>Retirement:</b> ${fD(G_RD)}</div>`;}
-  document.getElementById('pay_table_area').innerHTML=h;updateFinalPayCard();
-}
+    // POS Functions with stock deduction
+    function renderBillTable() {
+        const tbody = document.getElementById('billItemsBody');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        billItems.forEach((item, idx) => {
+            let row = tbody.insertRow();
+            row.insertCell(0).innerText = item.name;
+            row.insertCell(1).innerHTML = `<span style="font-weight:600;">${item.quantity}</span>`;
+            row.insertCell(2).innerText = item.price.toFixed(2);
+            row.insertCell(3).innerText = (item.price * item.quantity).toFixed(2);
+            let delBtn = document.createElement('button');
+            delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            delBtn.className = 'btn-outline';
+            delBtn.onclick = () => { billItems.splice(idx,1); renderBillTable(); computeTotals(); };
+            row.insertCell(4).appendChild(delBtn);
+        });
+    }
+    function computeTotals() {
+        let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
+        let discAmt = sub * (discountPercent/100);
+        let afterDisc = sub - discAmt;
+        let prev = currentCustomer.previousBalance || 0;
+        let grand = afterDisc + prev;
+        let paid = parseFloat(document.getElementById('paidAmount')?.value) || 0;
+        let balance = grand - paid;
+        document.getElementById('totalBillSpan').innerText = sub.toFixed(2) + " PKR";
+        document.getElementById('discountAmountSpan').innerText = discAmt.toFixed(2) + " PKR";
+        document.getElementById('prevBalSpan').innerText = prev.toFixed(2) + " PKR";
+        document.getElementById('grandTotalSpan').innerText = grand.toFixed(2) + " PKR";
+        document.getElementById('balanceSpan').innerText = balance.toFixed(2) + " PKR";
+    }
+    async function generateAndSaveBill() {
+        if(!currentCustomer.id) { showToast("Select customer",true); return; }
+        if(billItems.length===0) { showToast("No items",true); return; }
+        const btn = document.getElementById('generatePdfBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Processing...';
+        btn.disabled = true;
+        try {
+            let sub = billItems.reduce((s,i)=>s+(i.price*i.quantity),0);
+            let discAmt = sub*(discountPercent/100);
+            let currentPurchaseAfterDisc = sub - discAmt;
+            let paid = parseFloat(document.getElementById('paidAmount').value)||0;
+            let newBalance = currentCustomer.previousBalance + currentPurchaseAfterDisc - paid;
+            if (newBalance < 0) newBalance = 0;
+            let grand = currentCustomer.previousBalance + currentPurchaseAfterDisc;
+            let balanceDue = grand - paid;
+            
+            const ledgerData = { customerId: currentCustomer.id, customerName: currentCustomer.name, items: billItems.map(i=>({barcode:i.barcode, name:i.name, price:i.price, quantity:i.quantity})), subtotal:sub, discountPercent, discountAmount:discAmt, previousBalance:currentCustomer.previousBalance, grandTotal:grand, amountPaid:paid, balanceDue:balanceDue, timestamp: new Date().toISOString() };
+            await addDoc(collection(window.db, "ledger"), ledgerData);
+            await updateDoc(doc(window.db, "customers", currentCustomer.id), { previousBalance: newBalance });
+            currentCustomer.previousBalance = newBalance;
+            
+            for (let item of billItems) {
+                const inventoryRef = doc(window.db, "inventory", item.barcode);
+                const invSnap = await getDoc(inventoryRef);
+                if (invSnap.exists()) {
+                    const currentStock = invSnap.data().stock || 0;
+                    await updateDoc(inventoryRef, { stock: Math.max(0, currentStock - item.quantity) });
+                }
+            }
+            await loadAllItems();
+            await loadInventoryList();
+            await generateStockSummary();
+            
+            const billHTML = `<div style="text-align:center"><h2>SANA BOOK DEPOT</h2><p>Usman Bazar Havelian | +923235124366</p></div><p>Customer: ${currentCustomer.name}</p><p>Date: ${new Date().toLocaleString()}</p><table border="1">${billItems.map(i=>`<tr><td>${i.name}</td><td>${i.quantity}</td><td>${i.price}</td><td>${(i.price*i.quantity).toFixed(2)}</td></tr>`).join('')}</table><p>Grand Total: ${grand.toFixed(2)} PKR</p><p>Thank you!</p>`;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(billHTML);
+            printWindow.document.close();
+            showToast("✅ Bill saved & stock updated");
+            billItems = []; renderBillTable(); computeTotals(); document.getElementById('paidAmount').value = 0; discountPercent = 0; computeTotals(); 
+            await loadLedger(); await loadCustomers();
+        } catch(e) { showToast("Error: "+e.message, true); }
+        finally { btn.innerHTML = '<i class="fas fa-file-pdf"></i> Save Bill & PDF'; btn.disabled = false; }
+    }
+    function openQuantityModal(barcode, name, price) {
+        const existing = billItems.find(i => i.barcode === barcode);
+        document.getElementById('qtyItemName').innerText = name;
+        document.getElementById('qtyItemPrice').innerText = price;
+        document.getElementById('qtyInput').value = existing ? existing.quantity : 1;
+        document.getElementById('quantityModal').style.display = 'flex';
+        window.pendingBook = { barcode, name, price };
+    }
+    function addToBillWithQuantity() {
+        const qty = parseInt(document.getElementById('qtyInput').value);
+        if (isNaN(qty) || qty < 1) { showToast("Invalid quantity", true); return; }
+        const { barcode, name, price } = window.pendingBook;
+        const existing = billItems.find(i => i.barcode === barcode);
+        if (existing) existing.quantity = qty;
+        else billItems.push({ barcode, name, price, quantity: qty });
+        renderBillTable(); computeTotals();
+        showToast(`${name} x${qty} added`);
+        document.getElementById('quantityModal').style.display = 'none';
+    }
+    async function processBarcodeForPOS(barcode) {
+        const item = allItems.find(i => i.id === barcode);
+        if (item) openQuantityModal(barcode, item.name, item.price);
+        else showToast("Book not found", true);
+    }
 
-function getRC(t){switch(t){case'mustered':return'row-mustered';case'rev':return'row-rev';case'pension':return'row-pension';case'prom':return'row-prom';case'upgrade':return'row-upgrade';case'advinc':return'row-advinc';case'inc-skip':return'row-inc';default:return'row-inc';}}
+    // Inventory functions
+    async function loadInventoryList() {
+        await loadAllItems();
+        const categoryFilter = document.getElementById('categoryFilter')?.value;
+        const filtered = categoryFilter ? allItems.filter(i => i.category === categoryFilter) : allItems;
+        const container = document.getElementById('inventoryList');
+        if(container) container.innerHTML = filtered.map(item => `<div class="list-item"><i class="fas fa-book"></i> <strong>${item.name}</strong><br>Barcode: ${item.id}<br>Category: ${allCategories.find(c=>c.id===item.category)?.name || 'N/A'}<br>Price: ${item.price} PKR<br>Stock: ${item.stock||0}</div>`).join('');
+        const stockContainer = document.getElementById('stockItemList');
+        if(stockContainer) stockContainer.innerHTML = allItems.map(item => `<div class="list-item"><i class="fas fa-box"></i> <strong>${item.name}</strong><br>Barcode: ${item.id}<br>Stock: ${item.stock||0}<button class="btn-outline stock-update-btn" data-barcode="${item.id}" data-name="${item.name}" data-stock="${item.stock||0}" style="margin-top:6px;"><i class="fas fa-edit"></i> Update Stock</button></div>`).join('');
+        document.querySelectorAll('.stock-update-btn').forEach(btn => btn.addEventListener('click', () => openStockUpdateByBarcode(btn.dataset.barcode, btn.dataset.name, parseInt(btn.dataset.stock))));
+    }
+    async function addNewItem(barcode, name, categoryId, price, stock) {
+        await setDoc(doc(window.db, "inventory", barcode), { name, category: categoryId, price, stock: parseInt(stock) || 0 });
+        await loadAllItems();
+        loadInventoryList();
+    }
+    async function updateStock(barcode, newQty) {
+        await updateDoc(doc(window.db, "inventory", barcode), { stock: parseInt(newQty) });
+        await loadAllItems();
+        loadInventoryList();
+        generateStockSummary();
+    }
+    function openStockUpdateByBarcode(barcode, name, currentStock) {
+        document.getElementById('stockItemName').innerText = name;
+        document.getElementById('currentStockQty').innerText = currentStock;
+        document.getElementById('newStockQty').value = currentStock;
+        document.getElementById('stockUpdateModal').style.display = 'flex';
+        window.stockUpdateBarcode = barcode;
+    }
+    
+    function openManualStockUpdate() {
+        document.getElementById('manualBarcode').value = '';
+        document.getElementById('manualItemName').value = '';
+        document.getElementById('manualNewStock').value = '';
+        document.getElementById('manualStockUpdateModal').style.display = 'flex';
+    }
+    async function fetchItemForManualUpdate() {
+        const barcode = document.getElementById('manualBarcode').value.trim();
+        if (!barcode) { showToast("Enter barcode", true); return; }
+        const item = allItems.find(i => i.id === barcode);
+        if (item) {
+            document.getElementById('manualItemName').value = item.name;
+            document.getElementById('manualNewStock').value = item.stock || 0;
+        } else {
+            showToast("Book not found", true);
+            document.getElementById('manualItemName').value = '';
+        }
+    }
+    async function confirmManualUpdate() {
+        const barcode = document.getElementById('manualBarcode').value.trim();
+        const newStock = parseInt(document.getElementById('manualNewStock').value);
+        if (!barcode || isNaN(newStock)) { showToast("Valid barcode and quantity required", true); return; }
+        const item = allItems.find(i => i.id === barcode);
+        if (!item) { showToast("Book not found", true); return; }
+        await updateStock(barcode, newStock);
+        document.getElementById('manualStockUpdateModal').style.display = 'none';
+        showToast(`Stock updated to ${newStock}`);
+    }
 
-function viewRow(idx){
-  const r=G_R[idx];if(!r)return;
-  const sc=gSS(r.scale,r.scaleRevYear);
-  document.getElementById('view_modal_body').innerHTML=`
-    <div class="detail-item"><span class="detail-key">S.No</span><span class="detail-val">${r.sno}</span></div>
-    <div class="detail-item"><span class="detail-key">Event</span><span class="detail-val">${r.eventLabel}</span></div>
-    <div class="detail-item"><span class="detail-key">Date</span><span class="detail-val">${fD(r.date)}</span></div>
-    <div class="detail-item"><span class="detail-key">Scale</span><span class="detail-val">${r.scale} (${sc})</span></div>
-    <div class="detail-item"><span class="detail-key">Basic Pay</span><span class="detail-val" style="font-weight:700;">Rs. ${r.pay.toLocaleString()}</span></div>
-    <div class="detail-item"><span class="detail-key">Change</span><span class="detail-val" style="color:${r.changeAmt>0?'#2e7d32':r.changeAmt<0?'#c62828':'inherit'}">${r.changeAmt>0?'+':''}${r.changeAmt.toLocaleString()}</span></div>
-    <div class="detail-item"><span class="detail-key">Type</span><span class="detail-val">${r.type.toUpperCase()}</span></div>
-    <div class="detail-item"><span class="detail-key">Remarks</span><span class="detail-val">${r.remark}</span></div>`;
-  document.getElementById('view_modal').classList.add('active');
-}
+    async function generateStockSummary() {
+        await loadAllItems();
+        const totalValue = allItems.reduce((sum, i) => sum + (i.price * (i.stock||0)), 0);
+        const lowStockItems = allItems.filter(i => (i.stock||0) < 5);
+        const outOfStock = allItems.filter(i => (i.stock||0) === 0);
+        const totalItems = allItems.length;
+        const totalStock = allItems.reduce((s,i)=>s+(i.stock||0),0);
+        
+        const categoryWise = allCategories.map(cat => {
+            const items = allItems.filter(i => i.category === cat.id);
+            const totalStockQty = items.reduce((s,i)=>s+(i.stock||0),0);
+            const totalVal = items.reduce((s,i)=>s+(i.price*(i.stock||0)),0);
+            return `<div class="report-card"><h3>${cat.name}</h3><p>Total Stock: ${totalStockQty} units</p><p>Total Value: ${totalVal.toFixed(2)} PKR</p><p>Items: ${items.length}</p></div>`;
+        }).join('');
+        
+        const container = document.getElementById('stockSummaryReports');
+        if(container) container.innerHTML = `
+            <div class="summary-stats">
+                <div class="stat-card"><h4>Total Books</h4><div class="stat-value">${totalItems}</div></div>
+                <div class="stat-card"><h4>Total Stock Value</h4><div class="stat-value">${totalValue.toFixed(0)} PKR</div></div>
+                <div class="stat-card"><h4>Total Stock Units</h4><div class="stat-value">${totalStock}</div></div>
+                <div class="stat-card"><h4>Low Stock Books</h4><div class="stat-value">${lowStockItems.length}</div></div>
+                <div class="stat-card"><h4>Out of Stock</h4><div class="stat-value">${outOfStock.length}</div></div>
+            </div>
+            <div class="report-card"><h3>⚠️ Low Stock Alert ( < 5 )</h3>${lowStockItems.length ? lowStockItems.map(i => `<p><strong>${i.name}</strong> - Current Stock: ${i.stock} - Minimum Required: 5</p>`).join('') : '<p>✅ All books have sufficient stock.</p>'}</div>
+            <div class="report-card"><h3>📦 Out of Stock Books</h3>${outOfStock.length ? outOfStock.map(i => `<p><strong>${i.name}</strong> - Stock: 0 - Please restock immediately!</p>`).join('') : '<p>✅ No out of stock books.</p>'}</div>
+            <div class="report-card"><h3>📊 Category-wise Stock Breakdown</h3>${categoryWise}</div>
+        `;
+    }
+    
+    async function exportLowStockToPDF() {
+        await loadAllItems();
+        const lowStockItems = allItems.filter(i => (i.stock||0) < 5);
+        if (lowStockItems.length === 0) {
+            showToast("No low stock items to export", true);
+            return;
+        }
+        const pdfDiv = document.createElement('div');
+        pdfDiv.style.padding = '30px';
+        pdfDiv.style.fontFamily = 'Inter, sans-serif';
+        pdfDiv.style.backgroundColor = 'white';
+        pdfDiv.innerHTML = `
+            <div style="text-align:center; border-bottom:3px solid #2c5364; padding-bottom:20px; margin-bottom:20px;">
+                <h1 style="color:#1a2a36;">📚 SANA BOOK DEPOT</h1>
+                <p>Usman Bazar Havelian | +923235124366</p>
+                <h2>Low Stock Report</h2>
+                <p>Generated: ${new Date().toLocaleString()}</p>
+            </div>
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background-color:#2c5364; color:white;">
+                        <th style="padding:10px; border:1px solid #ddd;">Book Name</th>
+                        <th style="padding:10px; border:1px solid #ddd;">Barcode</th>
+                        <th style="padding:10px; border:1px solid #ddd;">Category</th>
+                        <th style="padding:10px; border:1px solid #ddd;">Current Stock</th>
+                        <th style="padding:10px; border:1px solid #ddd;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${lowStockItems.map(item => {
+                        const category = allCategories.find(c=>c.id===item.category)?.name || 'N/A';
+                        const status = (item.stock||0) === 0 ? '⚠️ OUT OF STOCK' : '⚠️ Low Stock';
+                        return `<tr>
+                            <td style="padding:8px; border:1px solid #ddd;">${item.name}</td>
+                            <td style="padding:8px; border:1px solid #ddd;">${item.id}</td>
+                            <td style="padding:8px; border:1px solid #ddd;">${category}</td>
+                            <td style="padding:8px; border:1px solid #ddd;">${item.stock||0}</td>
+                            <td style="padding:8px; border:1px solid #ddd;">${status}</td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+            </table>
+            <div style="text-align:center; margin-top:30px; padding-top:20px; border-top:2px dashed #ccc;">
+                <p>This is a computer generated report</p>
+            </div>
+        `;
+        html2pdf().set({ filename: `Low_Stock_Report_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`, margin: 0.5 }).from(pdfDiv).save();
+        showToast("Low stock report exported to PDF");
+    }
 
-/* ================================================================
-   ACTION MENU & MODALS
-   ================================================================ */
-function showActionMenu(idx,event){
-  event.stopPropagation();
-  const ex=document.getElementById('action_menu');if(ex)ex.remove();
-  const m=document.createElement('div');m.id='action_menu';m.className='action-menu';
-  [{l:'⬆ Upgradation',a:'upgradation'},{l:'🎓 Advance Increment',a:'advinc'},{l:'⭐ Promotion',a:'promotion'}].forEach(x=>{
-    const item=document.createElement('div');item.className='action-menu-item';item.textContent=x.l;
-    item.onclick=()=>{m.remove();openModal(idx,x.a);};m.appendChild(item);
-  });
-  document.body.appendChild(m);
-  const rect=event.target.getBoundingClientRect();
-  m.style.left=Math.min(rect.left-100,window.innerWidth-280)+'px';
-  m.style.top=Math.min(rect.bottom+5,window.innerHeight-180)+'px';
-  setTimeout(()=>document.addEventListener('click',function c(e){if(!m.contains(e.target)){m.remove();document.removeEventListener('click',c);}}),10);
-}
+    // Camera scanner functions
+    async function openPOSScanner() {
+        document.getElementById('scanModal').style.display = 'flex';
+        const container = document.getElementById('scanCameraContainer');
+        container.innerHTML = '<div id="posScanView" style="width:100%;"></div>';
+        stopScanner();
+        Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#posScanView"), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader","ean_8_reader","code_128_reader","code_39_reader"], multiple: false }, locate: true, numOfWorkers: 4 }, (err) => {
+            if (err) { showToast("Camera error", true); closePOSScanner(); return; }
+            Quagga.start();
+            activeScanner = true;
+            Quagga.onDetected(async (data) => {
+                if (scanCooldown) return;
+                const code = data.codeResult.code;
+                if (!isValidBarcode(code)) { showToast("Invalid barcode", true); scanCooldown=true; setTimeout(()=>scanCooldown=false,1500); return; }
+                if (lastScannedCode === code) return;
+                lastScannedCode = code;
+                scanCooldown = true;
+                stopScanner(); closePOSScanner();
+                if (window.scanForStock) { 
+                    const item = allItems.find(i => i.id === code);
+                    if(item) openStockUpdateByBarcode(code, item.name, item.stock||0);
+                    else showToast("Book not found", true);
+                    window.scanForStock = false;
+                }
+                else await processBarcodeForPOS(code);
+                setTimeout(() => { scanCooldown = false; lastScannedCode = null; }, 1000);
+            });
+        });
+    }
+    function closePOSScanner() { document.getElementById('scanModal').style.display = 'none'; stopScanner(); }
+    async function openItemScanner() {
+        const container = document.getElementById('itemScannerView');
+        if (!container) return;
+        document.getElementById('itemCameraContainer').style.display = 'block';
+        container.innerHTML = '<div id="itemScanView" style="width:100%;"></div>';
+        stopScanner();
+        Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector("#itemScanView"), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader","ean_8_reader","code_128_reader","code_39_reader"], multiple: false }, locate: true, numOfWorkers: 4 }, (err) => {
+            if (err) { showToast("Camera error", true); closeItemScanner(); return; }
+            Quagga.start();
+            activeScanner = true;
+            Quagga.onDetected(async (data) => {
+                const code = data.codeResult.code;
+                if (code) { stopScanner(); document.getElementById('newItemBarcode').value = code; closeItemScanner(); showToast("Barcode scanned"); }
+            });
+        });
+    }
+    function closeItemScanner() { document.getElementById('itemCameraContainer').style.display = 'none'; stopScanner(); }
 
-function openModal(idx,action){
-  G_MI=idx;G_MA=action;
-  const t=document.getElementById('modal_title'),b=document.getElementById('modal_body');
-  const scaleOpts=Object.keys(PAY_SCALES).sort().map(s=>`<option value="${s}">${s}</option>`).join('');
-  switch(action){
-    case'upgradation':
-      t.innerHTML='⬆ Upgradation';
-      b.innerHTML=`<div class="modal-error" id="modal_error"></div>
-        <div class="modal-field"><label>Upgradation Type</label><select id="upgrade_type"><option value="">-- Select Type --</option><option value="appointment">On Appointment</option><option value="scale">Upgrade Scale</option></select><div class="hint"><b>On Appointment:</b> Next above stage in upgraded scale.<br><b>Upgrade Scale:</b> Same stage in upgraded scale.</div></div>
-        <div class="modal-field"><label>Upgradation Date</label><input type="date" id="upgrade_date"><div class="hint">Date when upgradation takes effect.</div></div>
-        <div class="modal-field"><label>Upgraded to Scale</label><select id="upgrade_scale"><option value="">-- Select New Scale --</option>${scaleOpts}</select><div class="hint">Target scale for upgradation.</div></div>`;break;
-    case'advinc':
-      t.innerHTML='🎓 Advance Increment';
-      b.innerHTML=`<div class="modal-error" id="modal_error"></div>
-        <div class="modal-field"><label>Number of Advance Increments</label><select id="advinc_count"><option value="">-- Select Count --</option>${[1,2,3,4,5].map(n=>`<option value="${n}">${n} Increment${n>1?'s':''}</option>`).join('')}</select><div class="hint">Select 1 to 5 increments in current scale.</div></div>
-        <div class="modal-field"><label>Effective Date</label><input type="date" id="advinc_date"><div class="hint">Date from which advance increments take effect.</div></div>`;break;
-    case'promotion':
-      t.innerHTML='⭐ Promotion';
-      b.innerHTML=`<div class="modal-error" id="modal_error"></div>
-        <div class="modal-field"><label>Promotion Scale (New Scale)</label><select id="prom_scale"><option value="">-- Select Promoted Scale --</option>${scaleOpts}</select><div class="hint">Select the scale to which the individual is promoted.</div></div>
-        <div class="modal-field"><label>Option / Benefit Availed</label><select id="prom_option"><option value="">-- Select Option --</option><option value="avail">Avail (Option Available)</option><option value="notavail">Not Avail (Option Not Available)</option></select><div class="hint"><b>Avail:</b> Current Stage + Annual Inc of Current Scale + Annual Inc of Promoted Scale = Next Above Stage in Promoted Scale. Skip next annual inc.<br><b>Not Avail:</b> Current Stage + Annual Inc of Promoted Scale = Next Above Stage in Promoted Scale. Normal increment cycle.</div></div>
-        <div class="modal-field"><label>Date of Promotion</label><input type="date" id="prom_date"><div class="hint">Date on which promotion took effect.</div></div>`;break;
-  }
-  document.getElementById('main_modal').classList.add('active');
-}
+    // Bluetooth scanner
+    async function connectBluetoothScanner() {
+        try {
+            btDevice = await navigator.bluetooth.requestDevice({ filters: [{ services: ['00001812-0000-1000-8000-00805f9b34fb'] }], optionalServices: ['00001812-0000-1000-8000-00805f9b34fb'] });
+            const server = await btDevice.gatt.connect();
+            const service = await server.getPrimaryService('00001812-0000-1000-8000-00805f9b34fb');
+            btCharacteristic = await service.getCharacteristic('00002a4d-0000-1000-8000-00805f9b34fb');
+            await btCharacteristic.startNotifications();
+            btCharacteristic.addEventListener('characteristicvaluechanged', (e) => {
+                const decoder = new TextDecoder('ascii');
+                let barcode = decoder.decode(e.target.value).replace(/[^a-zA-Z0-9]/g, '');
+                if (barcode && isValidBarcode(barcode)) { processBarcodeForPOS(barcode); addBtLog(`Scanned: ${barcode}`); }
+            });
+            isBtConnected = true;
+            document.getElementById('btScannerStatusDot').className = 'scanner-status-dot connected';
+            document.getElementById('btScannerStatusText').innerText = `Connected to ${btDevice.name}`;
+            showToast("Bluetooth scanner ready");
+        } catch(e) { showToast("BT error: "+e.message, true); }
+    }
+    function disconnectBluetoothScanner() {
+        if (btDevice && btDevice.gatt.connected) btDevice.gatt.disconnect();
+        isBtConnected = false;
+        document.getElementById('btScannerStatusDot').className = 'scanner-status-dot';
+        document.getElementById('btScannerStatusText').innerText = 'Disconnected';
+        showToast("Scanner disconnected");
+    }
+    function addBtLog(msg) { const log = document.getElementById('btScannerLog'); if(log) log.innerHTML += `<div><i class="fas fa-barcode"></i> ${msg}</div>`; log.scrollTop = log.scrollHeight; }
 
-function closeModal(){document.getElementById('main_modal').classList.remove('active');G_MA=null;G_MI=null;}
-function sME(m){const e=document.getElementById('modal_error');if(e){e.textContent='⚠ '+m;e.classList.add('show');}}
-function applyModalAction(){if(G_MA==='upgradation')aU();else if(G_MA==='advinc')aAI();else if(G_MA==='promotion')aP();}
+    // Navigation & initialization
+    window.addEventListener('firebaseReady', async () => {
+        setTimeout(() => { document.getElementById('startupScreen').style.opacity = '0'; setTimeout(() => { document.getElementById('startupScreen').style.display = 'none'; document.getElementById('appMain').style.display = 'block'; }, 500); }, 1500);
+        await loadCategories();
+        await loadAllItems();
+        await loadCustomers();
+        await loadLedger();
+        await loadInventoryList();
+        await generateStockSummary();
+        attachEvents();
+        computeTotals();
+    });
 
-function aU(){
-  const uType=document.getElementById('upgrade_type').value,dS=document.getElementById('upgrade_date').value,s=document.getElementById('upgrade_scale').value;
-  if(!uType||!dS||!s){sME('Please fill all fields.');return;}
-  const d=pD(dS);if(!d||d<G_MD||d>G_RD){sME('Invalid date.');return;}
-  const pr=G_R[G_MI];if(!pr)return;
-  const cP=pr.pay,cS=pr.scale,cRY=pr.scaleRevYear,rY=gARY(s,d),nr=gSE(s,rY);if(!nr)return;
-  let nP,remark;
-  if(uType==='appointment'){nP=fNH(s,rY,cP+1);remark=`On Appointment: Next above stage in ${s}`;}
-  else{const si=gSI(cS,cRY,cP);nP=nr.stages[Math.min(si,nr.stages.length-1)];remark=`Upgrade Scale: Same stage in ${s}`;}
-  const ip=G_MI+1,rB=G_R.slice(0,ip),rA=rP(s,rY,nP,d,false);
-  G_R=[...rB,{id:'r'+Date.now(),eventLabel:`Upgradation to Scale ${s} w.e.f. ${fD(d)}`,date:d,scale:s,scaleRevYear:rY,pay:nP,changeAmt:nP-cP,remark:remark,type:'upgrade',isManual:true,skipNextInc:false},...rA];
-  closeModal();renderTable();
-}
-
-function aAI(){
-  const c=parseInt(document.getElementById('advinc_count').value),dS=document.getElementById('advinc_date').value;
-  if(!c||c<1||c>5||!dS){sME('Please fill all fields.');return;}
-  const d=pD(dS);if(!d||d<G_MD||d>G_RD){sME('Invalid date.');return;}
-  const pr=G_R[G_MI];if(!pr)return;
-  const cP=pr.pay,cS=pr.scale,cRY=pr.scaleRevYear;
-  if(iMS(cS,cRY,cP)){sME('Already at maximum stage.');return;}
-  const nP=aMI(cS,cRY,cP,c),ip=G_MI+1,rB=G_R.slice(0,ip),rA=rP(cS,cRY,nP,d,false);
-  G_R=[...rB,{id:'r'+Date.now(),eventLabel:`Advance Increment (${c}x) w.e.f. ${fD(d)}`,date:d,scale:cS,scaleRevYear:cRY,pay:nP,changeAmt:nP-cP,remark:`${c} Advance Increment(s) for Higher Education`,type:'advinc',isManual:true,skipNextInc:false},...rA];
-  closeModal();renderTable();
-}
-
-function aP(){
-  const s=document.getElementById('prom_scale').value,o=document.getElementById('prom_option').value,dS=document.getElementById('prom_date').value;
-  if(!s||!o||!dS){sME('Please fill all fields.');return;}
-  const d=pD(dS);if(!d||d<G_MD||d>G_RD){sME('Invalid date.');return;}
-  const pr=G_R[G_MI];if(!pr)return;
-  const cP=pr.pay,cS=pr.scale,cRY=pr.scaleRevYear;
-  const rY=gARY(s,d),curInc=gInc(cS,cRY),promInc=gInc(s,rY);
-  let total,pP,pR,sk;
-  if(o==='avail'){total=cP+curInc+promInc;pP=fNH(s,rY,total);sk=true;pR=`Avail: ${cP.toLocaleString()}+${curInc}(CurrInc)+${promInc}(PromInc)=${total.toLocaleString()} → Next above in ${s}: ${pP.toLocaleString()}`;}
-  else{total=cP+promInc;pP=fNH(s,rY,total);sk=false;pR=`Not Avail: ${cP.toLocaleString()}+${promInc}(PromInc)=${total.toLocaleString()} → Next above in ${s}: ${pP.toLocaleString()}`;}
-  const ip=G_MI+1,rB=G_R.slice(0,ip),rA=rP(s,rY,pP,d,sk);
-  G_R=[...rB,{id:'r'+Date.now(),eventLabel:`Promotion to Scale ${s} w.e.f. ${fD(d)}`,date:d,scale:s,scaleRevYear:rY,pay:pP,changeAmt:pP-cP,remark:pR,type:'prom',isManual:true,skipNextInc:sk},...rA];
-  closeModal();renderTable();
-}
-
-function rP(s,ry,sP,aD,skF){
-  const res=[];let cP=sP,cS=s,cRY=ry,sk=skF;
-  for(const ev of PAY_EVENTS){const ed=pD(ev.date);if(!ed||ed<=aD||ed>G_RD)continue;
-    if(ev.type==='inc'){if(sk){sk=false;res.push({id:'r'+Date.now()+Math.random(),eventLabel:ev.label+' (Skip)',date:ed,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:0,remark:'Skip',type:'inc-skip'});continue;}
-      if(iMS(cS,cRY,cP)){res.push({id:'r'+Date.now()+Math.random(),eventLabel:ev.label+' (Max)',date:ed,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:0,remark:'Max',type:'inc'});continue;}
-      const pr=cP;cP=aI(cS,cRY,cP);res.push({id:'r'+Date.now()+Math.random(),eventLabel:ev.label,date:ed,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:cP-pr,remark:'Inc',type:'inc'});}
-    else if(ev.type==='rev'){if(!gSE(cS,ev.scaleYear))continue;const pr=cP,oRY=cRY;cRY=ev.scaleYear;cP=fOR(cS,oRY,cRY,pr);res.push({id:'r'+Date.now()+Math.random(),eventLabel:ev.label,date:ed,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:cP-pr,remark:'Revision',type:'rev'});}
-  }
-  if(jN(G_RD)&&!iMS(cS,cRY,cP)){const pr=cP;cP=aI(cS,cRY,cP);res.push({id:'r'+Date.now()+Math.random(),eventLabel:'Pension Inc',date:G_RD,scale:cS,scaleRevYear:cRY,pay:cP,changeAmt:cP-pr,remark:'Pension',type:'pension'});}
-  return res;
-}
-
-/* ================================================================
-   PRINT & PDF
-   ================================================================ */
-function openPrintPreview(){
-  if(!G_R.length){alert('Calculate first.');return;}
-  const en=document.getElementById('inp_enrol').value||'—',m=document.getElementById('inp_mustred').value||'—',r=document.getElementById('inp_retire').value||'—',s=document.getElementById('inp_scale').value||'—';
-  let tR='';G_R.forEach((r,i)=>{r.sno=i+1;const sc=gSS(r.scale,r.scaleRevYear),ch=r.changeAmt>0?'+'+r.changeAmt.toLocaleString():(r.changeAmt<0?r.changeAmt.toLocaleString():'—');const isHighlight=['mustered','rev','pension','prom','upgrade','advinc'].includes(r.type);const bg=r.type==='mustered'?'#f0f0ff':r.type==='rev'?'#fff3f3':r.type==='pension'?'#f0f8ff':r.type==='prom'?'#fdf0ff':r.type==='upgrade'?'#fff8f0':r.type==='advinc'?'#f0fff4':'#fff';const fw=isHighlight?'font-weight:bold;':'';tR+=`<tr style="background:${bg};${fw}"><td style="padding:6px;border:1px solid #999;">${r.sno}</td><td style="padding:6px;border:1px solid #999;">${r.eventLabel}</td><td style="padding:6px;border:1px solid #999;font-size:10px;">${r.scale}<br>(${sc})</td><td style="padding:6px;border:1px solid #999;font-weight:bold;">${r.pay.toLocaleString()}</td><td style="padding:6px;border:1px solid #999;color:${r.changeAmt>0?'#2e7d32':r.changeAmt<0?'#c62828':'#000'};">${ch}</td><td style="padding:6px;border:1px solid #999;font-size:10px;">${r.remark}</td></tr>`;});
-  const lR=G_R[G_R.length-1];
-  document.getElementById('print_preview_content').innerHTML=`<div style="text-align:center;font-size:20px;font-weight:bold;padding:10px;border:2px solid #1a1a1a;margin-bottom:15px;">Pay Detail Summary</div><h3 style="text-align:center;margin-bottom:8px;">Individual Particulars</h3><table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px;border:2px solid #1a1a1a;"><tr><td style="padding:8px;border:1px solid #999;font-weight:bold;background:#f5f5f5;width:200px;">Date of Enrolment</td><td style="padding:8px;border:1px solid #999;">${en}</td></tr><tr><td style="padding:8px;border:1px solid #999;font-weight:bold;background:#f5f5f5;">Date of Mustered (Pass Out)</td><td style="padding:8px;border:1px solid #999;">${m}</td></tr><tr><td style="padding:8px;border:1px solid #999;font-weight:bold;background:#f5f5f5;">Pay Scale</td><td style="padding:8px;border:1px solid #999;">${s}</td></tr><tr><td style="padding:8px;border:1px solid #999;font-weight:bold;background:#f5f5f5;">Date of Retirement</td><td style="padding:8px;border:1px solid #999;">${r}</td></tr></table><h3 style="text-align:center;background:#1a1a1a;color:#fff;padding:10px;margin:0;">Year-Wise Pay Details</h3><table style="width:100%;border-collapse:collapse;font-size:11px;border:2px solid #1a1a1a;"><thead><tr style="background:#1a1a1a;color:#fff;"><th style="padding:8px;border:1px solid #444;">S.No</th><th style="padding:8px;border:1px solid #444;">Pay Details</th><th style="padding:8px;border:1px solid #444;">Pay Scale</th><th style="padding:8px;border:1px solid #444;">Basic Pay (Rs)</th><th style="padding:8px;border:1px solid #444;">Change (Rs)</th><th style="padding:8px;border:1px solid #444;">Remarks</th></tr></thead><tbody>${tR}</tbody></table><div style="font-weight:bold;padding:12px;border:2px solid #1a1a1a;border-top:none;">Final Basic Pay at Retirement: Rs. ${lR.pay.toLocaleString()} | Scale: ${lR.scale}</div>`;
-  document.getElementById('print_preview_overlay').classList.add('active');
-}
-function closePrintPreview(){document.getElementById('print_preview_overlay').classList.remove('active');}
-function printDocument(){const c=document.getElementById('print_preview_content').innerHTML;const pw=window.open('','_blank','width=900,height=700');if(!pw)return;pw.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pay Detail</title><style>body{font-family:sans-serif;padding:20px;}@page{size:letter;margin:12mm;}</style></head><body>${c}</body></html>`);pw.document.close();setTimeout(()=>pw.print(),500);}
-function saveAsPDF(){printDocument();}
-function showErr(m){const e=document.getElementById('error_area');e.textContent=m;e.classList.remove('hidden');}
-
-/* ================================================================
-   GLOBAL EVENT LISTENERS
-   ================================================================ */
-document.getElementById('main_modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-document.getElementById('confirm_modal').addEventListener('click',function(e){if(e.target===this)closeConfirmModal();});
-document.getElementById('print_preview_overlay').addEventListener('click',function(e){if(e.target===this)closePrintPreview();});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.getElementById('action_menu')?.remove();closeModal();closeConfirmModal();closePrintPreview();document.getElementById('view_modal')?.classList.remove('active');}});
+    function attachEvents() {
+        // Dashboard card navigation
+        document.querySelectorAll('.dashboard-card').forEach(card => {
+            card.onclick = () => {
+                const pageId = card.dataset.page;
+                document.getElementById('dashboardSection').style.display = 'none';
+                document.getElementById(pageId).classList.add('active-page');
+                document.getElementById(pageId).style.display = 'block';
+                if (pageId === 'inventoryPage') loadInventoryList();
+                if (pageId === 'stockPage') loadInventoryList();
+                if (pageId === 'stockSummaryPage') generateStockSummary();
+            };
+        });
+        // Back buttons
+        document.querySelectorAll('.back-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.section-page').forEach(p => { p.classList.remove('active-page'); p.style.display = 'none'; });
+                document.getElementById('dashboardSection').style.display = 'block';
+            };
+        });
+        // POS buttons
+        document.getElementById('openScanModalBtn')?.addEventListener('click', () => { window.scanForStock = false; openPOSScanner(); });
+        document.getElementById('stopScanModalBtn')?.addEventListener('click', closePOSScanner);
+        document.getElementById('confirmQtyBtn')?.addEventListener('click', addToBillWithQuantity);
+        document.getElementById('cancelQtyBtn')?.addEventListener('click', () => document.getElementById('quantityModal').style.display = 'none');
+        document.getElementById('newCustomerBtn')?.addEventListener('click', () => document.getElementById('newCustomerModal').style.display = 'flex');
+        document.getElementById('addCustomerPageBtn')?.addEventListener('click', () => document.getElementById('newCustomerModal').style.display = 'flex');
+        document.getElementById('cancelCustomerBtn')?.addEventListener('click', () => document.getElementById('newCustomerModal').style.display = 'none');
+        document.getElementById('confirmCustomerBtn')?.addEventListener('click', async () => {
+            const name = document.getElementById('newCustomerName').value.trim();
+            if(name){ await addDoc(collection(window.db, "customers"), { name, previousBalance:0 }); loadCustomers(); showToast("Customer added"); document.getElementById('newCustomerModal').style.display = 'none'; }
+        });
+        document.getElementById('generatePdfBtn')?.addEventListener('click', generateAndSaveBill);
+        document.getElementById('refreshLedgerBtn')?.addEventListener('click', loadLedger);
+        document.getElementById('connectBtScannerBtn')?.addEventListener('click', connectBluetoothScanner);
+        document.getElementById('disconnectBtScannerBtn')?.addEventListener('click', disconnectBluetoothScanner);
+        document.getElementById('discountPercent')?.addEventListener('input', (e) => { discountPercent = parseFloat(e.target.value)||0; computeTotals(); });
+        document.getElementById('paidAmount')?.addEventListener('input', computeTotals);
+        document.getElementById('customerSearchInput')?.addEventListener('input', renderCustomerList);
+        document.getElementById('cancelPaymentBtn')?.addEventListener('click', () => document.getElementById('paymentModal').style.display = 'none');
+        document.getElementById('confirmPaymentBtn')?.addEventListener('click', recordPayment);
+        document.getElementById('exportLowStockPdfBtn')?.addEventListener('click', exportLowStockToPDF);
+        
+        // Inventory buttons
+        document.getElementById('openAddItemModalBtn')?.addEventListener('click', () => { document.getElementById('addItemModal').style.display = 'flex'; updateCategoryDropdowns(); });
+        document.getElementById('scanItemBarcodeBtn')?.addEventListener('click', openItemScanner);
+        document.getElementById('stopItemCameraBtn')?.addEventListener('click', closeItemScanner);
+        document.getElementById('cancelAddItemBtn')?.addEventListener('click', () => document.getElementById('addItemModal').style.display = 'none');
+        document.getElementById('saveItemBtn')?.addEventListener('click', async () => {
+            const barcode = document.getElementById('newItemBarcode').value.trim();
+            const category = document.getElementById('newItemCategory').value;
+            const name = document.getElementById('newItemName').value.trim();
+            const price = parseFloat(document.getElementById('newItemPrice').value);
+            const stock = parseInt(document.getElementById('newItemStock').value);
+            if(!barcode || !category || !name || isNaN(price)) { showToast("Fill all fields", true); return; }
+            const existing = await getDoc(doc(window.db, "inventory", barcode));
+            if(existing.exists()) { showToast("Book exists", true); return; }
+            await setDoc(doc(window.db, "inventory", barcode), { name, category, price, stock: stock||0 });
+            showToast("Book added");
+            document.getElementById('addItemModal').style.display = 'none';
+            await loadAllItems(); await loadInventoryList();
+            document.getElementById('newItemBarcode').value = ''; document.getElementById('newItemName').value = ''; document.getElementById('newItemPrice').value = ''; document.getElementById('newItemStock').value = '0';
+            closeItemScanner();
+        });
+        document.getElementById('addCategoryBtn')?.addEventListener('click', () => document.getElementById('addCategoryModal').style.display = 'flex');
+        document.getElementById('cancelCategoryBtn')?.addEventListener('click', () => document.getElementById('addCategoryModal').style.display = 'none');
+        document.getElementById('confirmCategoryBtn')?.addEventListener('click', async () => {
+            const catName = document.getElementById('newCategoryName').value.trim();
+            if(!catName) { showToast("Enter category name", true); return; }
+            await addDoc(collection(window.db, "categories"), { name: catName });
+            showToast("Category added");
+            document.getElementById('addCategoryModal').style.display = 'none';
+            await loadCategories();
+            document.getElementById('newCategoryName').value = '';
+        });
+        document.getElementById('categoryFilter')?.addEventListener('change', loadInventoryList);
+        
+        // Stock management buttons
+        document.getElementById('scanStockBarcodeBtn')?.addEventListener('click', () => { window.scanForStock = true; openPOSScanner(); });
+        document.getElementById('manualStockUpdateBtn')?.addEventListener('click', openManualStockUpdate);
+        document.getElementById('confirmStockBtn')?.addEventListener('click', async () => {
+            const newQty = document.getElementById('newStockQty').value;
+            if(!newQty || isNaN(parseInt(newQty))) { showToast("Valid quantity required", true); return; }
+            await updateStock(window.stockUpdateBarcode, newQty);
+            document.getElementById('stockUpdateModal').style.display = 'none';
+            showToast("Stock updated");
+        });
+        document.getElementById('cancelStockBtn')?.addEventListener('click', () => document.getElementById('stockUpdateModal').style.display = 'none');
+        document.getElementById('manualBarcode')?.addEventListener('blur', fetchItemForManualUpdate);
+        document.getElementById('cancelManualBtn')?.addEventListener('click', () => document.getElementById('manualStockUpdateModal').style.display = 'none');
+        document.getElementById('confirmManualBtn')?.addEventListener('click', confirmManualUpdate);
+        
+        // Autocomplete for POS search
+        document.getElementById('searchItemInput')?.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allItems.filter(i => i.name.toLowerCase().includes(query));
+            const resultsDiv = document.getElementById('autocompleteResults');
+            if(filtered.length) resultsDiv.innerHTML = filtered.map(i => `<div class="autocomplete-item" data-barcode="${i.id}" data-name="${i.name}" data-price="${i.price}">📖 ${i.name} - ${i.price} PKR</div>`).join('');
+            else resultsDiv.innerHTML = '';
+            resultsDiv.style.display = filtered.length ? 'block' : 'none';
+            document.querySelectorAll('.autocomplete-item').forEach(el => el.addEventListener('click', () => { document.getElementById('searchItemInput').value = ''; resultsDiv.style.display = 'none'; openQuantityModal(el.dataset.barcode, el.dataset.name, parseFloat(el.dataset.price)); }));
+        });
+        document.addEventListener('click', (e) => { if(!document.getElementById('searchItemInput')?.contains(e.target)) document.getElementById('autocompleteResults').style.display = 'none'; });
+    }
 </script>
 </body>
 </html>
